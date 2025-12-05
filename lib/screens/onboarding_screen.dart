@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musicapp/screens/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -50,7 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
             ),
             ),
-             Row(
+            Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               pages.length,
@@ -71,8 +72,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onPressed: () {
               Navigator.pushReplacement(
                 context, 
-                MaterialPageRoute(builder: (_) => const ))
-            }, child: child)
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+            }, 
+            child: const Text("Get Started"),
+            )
+            :TextButton(
+              onPressed: () {
+                controller.nextPage(duration: const Duration(milliseconds: 200), 
+                curve: Curves.easeIn,
+                );
+              }, 
+              child: const Text("Next"),
+              ),
+              const SizedBox(height: 30),
         ],
       ),
     );
