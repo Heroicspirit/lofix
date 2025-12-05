@@ -21,17 +21,17 @@ class LoginScreen extends StatelessWidget {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.orange, Colors.pink],
-                ),
                 borderRadius: BorderRadius.all(Radius.circular(16),
                 ),
               ),
-              child: const Icon(
-                Icons.music_note,
-                color: Color.fromARGB(255, 175, 76, 76),
-                size: 36,
+              child:(
+                Image.asset('assets/image/logo.png')
               ),
+              //const Icon(
+              //   Icons.music_note,
+              //   color: Color.fromARGB(255, 175, 76, 76),
+              //   size: 36,
+              // ),
             ),
             const SizedBox(height: 12),
             const Text(
