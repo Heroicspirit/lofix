@@ -94,7 +94,7 @@ class LoginScreen extends StatelessWidget {
                     child: const Text(
                       "Sign In",
                       style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          TextStyle(color: Colors.white,fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -102,7 +102,8 @@ class LoginScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Dont have an account? "),
+                    const Text("Dont have an account? ",
+                    style: TextStyle(fontSize: 16),),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -115,8 +116,9 @@ class LoginScreen extends StatelessWidget {
                       child: const Text(
                         "Sign Up",
                         style:  TextStyle(
-                          color: Colors.blue,
+                          color: Color.fromARGB(255, 11, 89, 153),
                           fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
                     )
