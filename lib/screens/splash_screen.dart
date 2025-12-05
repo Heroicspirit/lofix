@@ -13,10 +13,9 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    /// Delay navigation safely AFTER the widget is fully built
     Future.microtask(() {
       Future.delayed(const Duration(seconds: 5), () {
-        if (!mounted) return; // Prevent errors if widget is disposed
+        if (!mounted) return; 
 
         Navigator.pushReplacement(
           context,
