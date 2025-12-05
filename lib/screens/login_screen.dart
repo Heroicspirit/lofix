@@ -33,14 +33,6 @@ class LoginScreen extends StatelessWidget {
               //   size: 36,
               // ),
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'Lofix',
-              style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
             const SizedBox(height: 60),
             Align(
               alignment: AlignmentGeometry.centerLeft,
