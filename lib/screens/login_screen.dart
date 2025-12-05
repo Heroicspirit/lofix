@@ -27,11 +27,6 @@ class LoginScreen extends StatelessWidget {
               child:(
                 Image.asset('assets/image/logo.png')
               ),
-              //const Icon(
-              //   Icons.music_note,
-              //   color: Color.fromARGB(255, 175, 76, 76),
-              //   size: 36,
-              // ),
             ),
             const SizedBox(height: 60),
             Align(
