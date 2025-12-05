@@ -14,9 +14,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int currentIndex =0;
 
   final List<Map<String,String>> pages = [
-    {"title": "Welcome to Lofix", "desc": "Fix anything easily"},
-    {"title": "Fast Service", "desc": "Quick & reliable"},
-    {"title": "Get Started", "desc": "Login to continue"},
+    {"title": "Welcome to Lofix", "desc": "Stream your favorite music anytime, anywhere"},
+    {"title": "Search your favourite", "desc": "and enjoy"},
+    {"title": "Get Started", "desc": "Login to explore endless music"},
   ];
 
   @override
