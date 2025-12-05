@@ -30,23 +30,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: 70,
               height: 70,
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.orange, Colors.pink],
-                ),
                 borderRadius: BorderRadius.all(Radius.circular(16)),
               ),
-              child: const Icon(
-                Icons.music_note,
-                color: Colors.white,
-                size: 36,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              "LoFix",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+              child: (
+                Image.asset('assets/image/logo.png')
               ),
             ),
             const SizedBox(height: 40),
