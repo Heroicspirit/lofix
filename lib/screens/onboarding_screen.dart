@@ -79,7 +79,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             )
             :TextButton(
               onPressed: () {
-                controller.nextPage(duration: const Duration(milliseconds: 200), 
+                swipeController.nextPage(duration: const Duration(milliseconds: 200), 
                 curve: Curves.easeIn,
                 );
               }, 
