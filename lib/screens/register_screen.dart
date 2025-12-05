@@ -131,7 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // Back to Login
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6CA8E0),
