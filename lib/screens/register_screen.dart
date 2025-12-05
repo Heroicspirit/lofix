@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musicapp/screens/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -131,7 +132,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                    context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6CA8E0),
