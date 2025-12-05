@@ -10,7 +10,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
 
-  final PageController controller = PageController();
+  final PageController swipeController  = PageController();
   int currentIndex =0;
 
   final List<Map<String,String>> pages = [
@@ -27,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           Expanded(
             child: PageView.builder(
-              controller: controller,
+              controller: swipeController,
             itemCount: pages.length,
             onPageChanged: (index){
               setState(() {
