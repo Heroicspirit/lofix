@@ -34,7 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 borderRadius: BorderRadius.all(Radius.circular(16)),
               ),
               child: (
-                Image.asset('assets/image/logo.png')
+                Image.asset('assets/images/logo.png')
               ),
             ),
             const SizedBox(height: 40),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:musicapp/screens/home_screen.dart';
+import 'package:musicapp/screens/dashboard_screen.dart';
 import 'package:musicapp/screens/register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -25,7 +25,7 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               child:(
-                Image.asset('assets/image/logo.png')
+                Image.asset('assets/images/logo.png')
               ),
             ),
             const SizedBox(height: 60),
@@ -76,7 +76,7 @@ class LoginScreen extends StatelessWidget {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const HomeScreen(),
+                          builder: (_) => const DashboardScreen(),
                         ),
                       );
                     },
