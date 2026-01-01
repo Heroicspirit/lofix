@@ -47,7 +47,7 @@ class HomeScreen extends StatelessWidget {
       ),
 
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(), // Spotify-like scroll
+        physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
