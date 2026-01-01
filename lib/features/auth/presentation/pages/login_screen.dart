@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:musicapp/screens/dashboard_screen.dart';
-import 'package:musicapp/screens/register_screen.dart';
+import 'package:musicapp/features/auth/presentation/pages/register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

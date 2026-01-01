@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:musicapp/screens/login_screen.dart';
+import 'package:musicapp/features/auth/presentation/pages/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
