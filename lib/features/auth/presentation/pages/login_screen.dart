@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:musicapp/screens/dashboard_screen.dart';
+import 'package:musicapp/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:musicapp/features/auth/presentation/pages/register_screen.dart';
 
 class LoginScreen extends StatelessWidget {

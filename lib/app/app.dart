@@ -1,6 +1,6 @@
 //stless
 import 'package:flutter/material.dart';
-import 'package:musicapp/screens/splash_screen.dart';
+import 'package:musicapp/features/splash/presentation/pages/splash_screen.dart';
 import 'package:musicapp/app/theme/theme.dart';
 
 
