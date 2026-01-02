@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:musicapp/features/onboarding/presentation/widgets/section_header.dart';
-import 'package:musicapp/features/onboarding/presentation/widgets/horizontal_music_list.dart';
+import 'package:musicapp/features/dashboard/presentation/widgets/section_header.dart';
+import 'package:musicapp/features/dashboard/presentation/widgets/horizontal_music_list.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
