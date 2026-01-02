@@ -1,42 +1,63 @@
-
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/core/services/hive/hive_service.dart';
+import 'package:musicapp/features/auth/data/datasources/auth_datasource.dart';
 import 'package:musicapp/features/auth/data/models/auth_hive_model.dart';
-import 'package:musicapp/features/auth/domain/enities/auth_entity.dart';
 
-abstract class IAuthLocalDataSource {
-  Future<void> registerUser(AuthEntity entity);
-  Future<AuthEntity> loginUser(String username, String password);
-}
 
-class AuthLocalDataSource implements IAuthLocalDataSource {
+//Provider
+final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
+  final hiveService = ref.watch(hiveServiceProvider);
+  return AuthLocalDatasource(hiveService: hiveService);
+});
+
+class AuthLocalDatasource implements IAuthDataSource {
   final HiveService _hiveService;
 
-  AuthLocalDataSource(this._hiveService);
+  AuthLocalDatasource({required HiveService hiveService})
+    : _hiveService = hiveService;
+  @override
+  Future<AuthHiveModel?> getCurrentUser() {
+    throw UnimplementedError();
+  }
 
   @override
-  Future<void> registerUser(AuthEntity entity) async {
+  Future<bool> isEmailExists(String email) {
     try {
-      final hiveModel = AuthHiveModel.fromEntity(entity);
-      
-      await _hiveService.register(hiveModel);
+      final exists = _hiveService.isEmailExists(email);
+      return Future.value(exists);
     } catch (e) {
-      throw Exception("Local Registration Failed: $e");
+      return Future.value(false);
     }
   }
 
   @override
-  Future<AuthEntity> loginUser(String email, String password) async {
+  Future<AuthHiveModel?> login(String email, String password) async {
     try {
-      final AuthHiveModel? userModel = await _hiveService.login(email, password);
-
-      if (userModel != null) {
-        return userModel.toEntity();
-      } else {
-        throw Exception("Invalid Username or Password");
-      }
+      final user = await _hiveService.loginUser(email, password);
+      return Future.value(user);
     } catch (e) {
-      throw Exception("Local Login Failed: $e");
+      return Future.value(null);
+    }
+  }
+
+  @override
+  Future<bool> logout() async {
+    try {
+      await _hiveService.logoutUser();
+      return Future.value(true);
+    } catch (e) {
+      return Future.value(false);
+    }
+  }
+
+  @override
+  Future<bool> register(AuthHiveModel model) async {
+    try {
+      await _hiveService.registerUser(model);
+      return Future.value(true);
+    } catch (e) {
+      // Re-throw the exception to be handled by the repository
+      rethrow;
     }
   }
 }
