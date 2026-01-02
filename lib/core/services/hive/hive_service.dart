@@ -10,12 +10,12 @@ final hiveServiceProvider = Provider<HiveService>((ref) {
 });
 
 class HiveService {
-
   static final Map<String, AuthHiveModel> _webStorage = {};
-  
+
   Future<void> init() async {
     if (!kIsWeb) {
       final directory = await getApplicationCacheDirectory();
+      // Ensure directory exists
       final path = '${directory.path}/${HiveTableConstant.dbName}';
       Hive.init(path);
       _registerAdapter();
@@ -23,14 +23,23 @@ class HiveService {
   }
 
   void _registerAdapter() {
-    if (!kIsWeb && !Hive.isAdapterRegistered(HiveTableConstant.authTypeId)) {
+    // Note: Removed !kIsWeb check here to allow registration if needed, 
+    // though init only calls this for non-web.
+    if (!Hive.isAdapterRegistered(HiveTableConstant.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
   }
 
   Future<void> openBoxes() async {
     if (!kIsWeb) {
-      await Hive.openBox<AuthHiveModel>(HiveTableConstant.authBoxName);
+      try {
+        await Hive.openBox<AuthHiveModel>(HiveTableConstant.authBoxName);
+      } catch (e) {
+        // CORRUPTION FIX: If the binary file is broken, delete it and reopen.
+        debugPrint("Hive box corrupted, deleting... Error: $e");
+        await Hive.deleteBoxFromDisk(HiveTableConstant.authBoxName);
+        await Hive.openBox<AuthHiveModel>(HiveTableConstant.authBoxName);
+      }
     }
   }
 
@@ -47,33 +56,29 @@ class HiveService {
     return Hive.box<AuthHiveModel>(HiveTableConstant.authBoxName);
   }
 
-  //regiseter user ko lagi
+  // Register user
   Future<AuthHiveModel> registerUser(AuthHiveModel model) async {
-    // Check if email already exists
     if (isEmailExists(model.email)) {
       throw Exception('Email already exists');
     }
-    
+
     if (kIsWeb) {
-      // Use in-memory storage for web
       _webStorage[model.authId!] = model;
     } else {
-      // Use Hive for mobile/desktop
-      await _authBox.put(model.authId, model);
+      // Ensure we use a unique key, like email or authId
+      await _authBox.put(model.authId ?? model.email, model);
     }
     return model;
   }
 
-  //Login user ko lagi
+  // Login user
   Future<AuthHiveModel?> loginUser(String email, String password) async {
     if (kIsWeb) {
-      // Use in-memory storage for web
       final users = _webStorage.values.where(
         (user) => user.email == email && user.password == password,
       );
       return users.isNotEmpty ? users.first : null;
     } else {
-      // Use Hive for mobile/desktop
       final users = _authBox.values.where(
         (user) => user.email == email && user.password == password,
       );
@@ -84,10 +89,8 @@ class HiveService {
     }
   }
 
-  //logout ko lagi
   Future<void> logoutUser() async {}
 
-  //get current user
   AuthHiveModel? getCurrentUser(String authId) {
     if (kIsWeb) {
       return _webStorage[authId];
@@ -96,14 +99,11 @@ class HiveService {
     }
   }
 
-  //isemail exists
   bool isEmailExists(String email) {
     if (kIsWeb) {
-      // Use in-memory storage for web
       final users = _webStorage.values.where((user) => user.email == email);
       return users.isNotEmpty;
     } else {
-      // Use Hive for mobile/desktop
       final users = _authBox.values.where((user) => user.email == email);
       return users.isNotEmpty;
     }

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:musicapp/core/constants/hive_table_constant.dart';
-import 'package:musicapp/features/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/features/auth/presentation/pages/register_screen.dart';
+import 'package:musicapp/features/auth/presentation/state/auth_state.dart';
+import 'package:musicapp/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:musicapp/features/dashboard/presentation/pages/dashboard_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  // 1. Controllers to capture input
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -23,8 +24,46 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _handleLogin() {
+    final email = _userController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // 2. Call the Login method from your ViewModel
+    ref.read(authViewModelProvider.notifier).login(
+          email: email,
+          password: password,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 3. Watch the state for loading indicators
+    final authState = ref.watch(authViewModelProvider);
+
+    // 4. Listen for changes (Success or Error)
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      if (next.status == AuthStatus.authenticated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful!'), backgroundColor: Colors.green),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      } else if (next.status == AuthStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage ?? 'Login failed'), backgroundColor: Colors.red),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -46,7 +85,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 60),
 
-                // User ID Field
                 _buildLabel("User ID / Email"),
                 const SizedBox(height: 8),
                 TextField(
@@ -55,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password Field
                 _buildLabel("Password"),
                 const SizedBox(height: 8),
                 TextField(
@@ -65,50 +102,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // SIGN IN BUTTON WITH HIVE LOGIC
+                // SIGN IN BUTTON
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // 2. HIVE LOGIN LOGIC
-                      final box = Hive.box(HiveTableConstant.authBoxName);
-                      
-                      // Retrieve the data stored under this username
-                      var userData = box.get(_userController.text);
-
-                      if (userData != null) {
-                        // Check if the password in our Map matches the input
-                        if (userData['password'] == _passwordController.text) {
-                          
-                          // Optional: Save the current logged-in user's name
-                          // box.put(HiveTableConstant.currentUserKey, _userController.text);
-
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DashboardScreen()),
-                          );
-                        } else {
-                          _showError("Incorrect password");
-                        }
-                      } else {
-                        _showError("User not found. Please sign up.");
-                      }
-                    },
+                    onPressed: authState.status == AuthStatus.loading 
+                        ? null 
+                        : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6CA8E0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      "Sign In",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: authState.status == AuthStatus.loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "Sign In",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -163,12 +180,6 @@ class _LoginScreenState extends State<LoginScreen> {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-    );
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 }
