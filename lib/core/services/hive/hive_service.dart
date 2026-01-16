@@ -18,7 +18,9 @@ class HiveService {
       // Ensure directory exists
       final path = '${directory.path}/${HiveTableConstant.dbName}';
       Hive.init(path);
+
       _registerAdapter();
+      await openBoxes();
     }
   }
 

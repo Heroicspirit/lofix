@@ -65,6 +65,7 @@ class AuthRepository implements IAuthRepository {
 
   @override
   Future<Either<Failure, bool>> register(AuthEntity entity) async {
+    if
     try {
       final model = AuthHiveModel.fromEntity(entity);
       final result = await _authDataSource.register(model);

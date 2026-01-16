@@ -1,30 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:musicapp/core/services/storage/user_session_service.dart';
+import 'package:musicapp/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:musicapp/features/onboarding/presentation/pages/onboarding_screen.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class SplashScreens extends ConsumerStatefulWidget {
+  // Changed to ConsumerStatefulWidget
+  const SplashScreens({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreens> createState() => _SplashScreensState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreensState extends ConsumerState<SplashScreens> {
+  // Changed to ConsumerState
   @override
   void initState() {
     super.initState();
+    // Start the navigation timer
+    _navigateToNext();
+  }
 
-    Future.microtask(() {
-      Future.delayed(const Duration(seconds: 5), () {
-        if (!mounted) return; 
+  /// Handles the delayed navigation to the onboarding screen
+  Future<void> _navigateToNext() async {
+    await Future.delayed(const Duration(seconds: 2));
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const OnboardingScreen(),
-          ),
-        );
-      });
-    });
+    if (!mounted) return;
+
+    //check if the user is logged in
+    final userSessionService = ref.read(userSessionServiceProvider);
+    final isLoggedIn = userSessionService.isLoggedIn();
+
+    if (isLoggedIn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
+    }else {
+      Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+    );
+    }
   }
 
   @override

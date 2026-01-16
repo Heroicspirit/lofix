@@ -112,7 +112,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
             _buildLabel("Gender"),
             DropdownButtonFormField<String>(
-              value: selectedGender,
+              initialValue: selectedGender,
               hint: const Text("Select gender"),
               items: const ["Male", "Female", "Others"]
                   .map((g) => DropdownMenuItem(value: g, child: Text(g)))
