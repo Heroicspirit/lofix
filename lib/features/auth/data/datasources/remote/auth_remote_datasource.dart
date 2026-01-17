@@ -56,20 +56,20 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         data: user.toJson(),
       );
       
-      print('✅ Remote Datasource: Got response from register API');
-      print('📊 Response data: ${response.data}');
+      print(' Remote Datasource: Got response from register API');
+      print('Response data: ${response.data}');
 
       if (response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
         final registeredUser = AuthApiModel.fromJson(data);
-        print('✅ Remote Datasource: Registration successful');
+        print('Remote Datasource: Registration successful');
         return registeredUser;
       } else {
-        print('❌ Remote Datasource: Registration failed - ${response.data['message']}');
+        print(' Remote Datasource: Registration failed - ${response.data['message']}');
         throw Exception(response.data['message'] ?? 'Registration failed');
       }
     } catch (e) {
-      print('💥 Remote Datasource: Exception during register - ${e.toString()}');
+      print('Remote Datasource: Exception during register - ${e.toString()}');
       rethrow;
     }
   }
