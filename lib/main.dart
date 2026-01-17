@@ -13,12 +13,11 @@ void main() async {
 
   if (!kIsWeb) {
     final hiveService = HiveService();
-    await hiveService.init(); // This usually calls Hive.initFlutter()
+    await hiveService.init();
     
-    // ADD THIS LINE: Open the specific boxes your app uses
-    // Replace 'user_box' with the actual name used in your Sign-Up logic
+    
     await Hive.openBox('user_box'); 
-    await Hive.openBox('settings_box'); // Open any others you need
+    await Hive.openBox('settings_box'); 
   }
   
   final sharedPrefs = await SharedPreferences.getInstance();

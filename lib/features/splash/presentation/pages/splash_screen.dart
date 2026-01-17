@@ -5,7 +5,7 @@ import 'package:musicapp/features/dashboard/presentation/pages/dashboard_screen.
 import 'package:musicapp/features/onboarding/presentation/pages/onboarding_screen.dart';
 
 class SplashScreens extends ConsumerStatefulWidget {
-  // Changed to ConsumerStatefulWidget
+
   const SplashScreens({super.key});
 
   @override
@@ -13,21 +13,20 @@ class SplashScreens extends ConsumerStatefulWidget {
 }
 
 class _SplashScreensState extends ConsumerState<SplashScreens> {
-  // Changed to ConsumerState
+
   @override
   void initState() {
     super.initState();
-    // Start the navigation timer
+
     _navigateToNext();
   }
 
-  /// Handles the delayed navigation to the onboarding screen
+
   Future<void> _navigateToNext() async {
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
-    //check if the user is logged in
     final userSessionService = ref.read(userSessionServiceProvider);
     final isLoggedIn = userSessionService.isLoggedIn();
 

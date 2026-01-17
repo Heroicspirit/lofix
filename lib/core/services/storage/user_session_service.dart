@@ -19,21 +19,21 @@ class UserSessionService {
   static const String _keyIsLoggedIn = 'is_logged_in';
   static const String _keyUserId = 'user_id';
   static const String _keyUserEmail = 'user_email';
-  static const String _keyUsername = 'username';
+  static const String _keyUsername = 'name';
   static const String _keyUserProfileImage = 'user_profile_image';
 
   //store user session data
   Future<void> saveUserSession({
     required String userId,
     required String email,
-    required String username,
+    required String name,
   
     String? profileImage,
   }) async {
     await _prefs.setBool(_keyIsLoggedIn, true);
     await _prefs.setString(_keyUserId, userId);
     await _prefs.setString(_keyUserEmail, email);
-    await _prefs.setString(_keyUsername, username);
+    await _prefs.setString(_keyUsername, name);
     if (profileImage != null) {
       await _prefs.setString(_keyUserProfileImage, profileImage);
     }

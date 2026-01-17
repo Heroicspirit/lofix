@@ -7,6 +7,7 @@ import 'package:musicapp/features/auth/data/repositories/auth_repository.dart';
 import 'package:musicapp/features/auth/domain/enities/auth_entity.dart';
 import 'package:musicapp/features/auth/domain/repositories/auth_repository.dart';
 
+
 class LoginUsecaseParams extends Equatable {
   final String email;
   final String password;
@@ -16,12 +17,15 @@ class LoginUsecaseParams extends Equatable {
   List<Object?> get props => [email, password];
 }
 
+//provider for loginusecase
+
 final loginUsecaseProvider = Provider<LoginUsecase>((ref) {
   final authRepository = ref.read(authRepositoryProvider);
   return LoginUsecase(authRepository: authRepository);
 });
 
-class LoginUsecase implements UsecaseWithParams<AuthEntity, LoginUsecaseParams> {
+class LoginUsecase
+    implements UsecaseWithParams<AuthEntity, LoginUsecaseParams> {
   final IAuthRepository _authRepository;
 
   LoginUsecase({required IAuthRepository authRepository})

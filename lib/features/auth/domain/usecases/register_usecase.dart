@@ -7,18 +7,19 @@ import 'package:musicapp/features/auth/data/repositories/auth_repository.dart';
 import 'package:musicapp/features/auth/domain/enities/auth_entity.dart';
 import 'package:musicapp/features/auth/domain/repositories/auth_repository.dart';
 
+
 class RegisterUsecaseParams extends Equatable {
   final String email;
-  final String username;
+  final String name;
   final String password;
 
   const RegisterUsecaseParams({
     required this.email,
-    required this.username,
+    required this.name,
     required this.password,
   });
   @override
-  List<Object?> get props => [email, username, password];
+  List<Object?> get props => [email, name, password];
 }
 
 //provider
@@ -29,7 +30,8 @@ final registerUsecaseProvider = Provider<RegisterUsecase>((ref) {
 
 
 
-class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> {
+class RegisterUsecase
+    implements UsecaseWithParams<bool, RegisterUsecaseParams> {
   final IAuthRepository _authRepository;
 
   RegisterUsecase({required IAuthRepository authRepository})
@@ -39,7 +41,7 @@ class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> 
   Future<Either<Failure, bool>> call(RegisterUsecaseParams params) {
     final entity = AuthEntity(
       email: params.email,
-      username: params.username,
+      name: params.name,
       password: params.password,
     );
     return _authRepository.register(entity);

@@ -41,11 +41,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    final username = email.split('@')[0];
+    final name = email.split('@')[0];
     // Call view model register method
     ref.read(authViewModelProvider.notifier).register(
           email: email,
-          username: username,
+          name: name,
           password: password,
           // If your entity supports gender, pass it here
         );
