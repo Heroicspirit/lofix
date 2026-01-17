@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:musicapp/core/constants/hive_table_constant.dart';
@@ -10,102 +9,95 @@ final hiveServiceProvider = Provider<HiveService>((ref) {
 });
 
 class HiveService {
-  static final Map<String, AuthHiveModel> _webStorage = {};
-
+  // Initialize Hive
   Future<void> init() async {
-    if (!kIsWeb) {
-      final directory = await getApplicationCacheDirectory();
-      // Ensure directory exists
-      final path = '${directory.path}/${HiveTableConstant.dbName}';
-      Hive.init(path);
-      _registerAdapter();
-    }
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/${HiveTableConstant.dbName}';
+    Hive.init(path);
+
+    // Register Adapters
+    _registerAdapter();
+    
+    // Open necessary boxes
+    await _openBoxes();
   }
 
+  // Adapter registration
   void _registerAdapter() {
-    // Note: Removed !kIsWeb check here to allow registration if needed, 
-    // though init only calls this for non-web.
     if (!Hive.isAdapterRegistered(HiveTableConstant.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
+    // Add additional adapters here as you create more features
   }
 
-  Future<void> openBoxes() async {
-    if (!kIsWeb) {
-      try {
-        await Hive.openBox<AuthHiveModel>(HiveTableConstant.authBoxName);
-      } catch (e) {
-        // CORRUPTION FIX: If the binary file is broken, delete it and reopen.
-        debugPrint("Hive box corrupted, deleting... Error: $e");
-        await Hive.deleteBoxFromDisk(HiveTableConstant.authBoxName);
-        await Hive.openBox<AuthHiveModel>(HiveTableConstant.authBoxName);
-      }
-    }
+  // Open Boxes
+  Future<void> _openBoxes() async {
+    await Hive.openBox<AuthHiveModel>(HiveTableConstant.authBoxName);
   }
 
-  Future<void> close() async {
-    if (!kIsWeb) {
-      await Hive.close();
-    }
+  // Helper getter for Auth Box
+  Box<AuthHiveModel> get _authBox =>
+      Hive.box<AuthHiveModel>(HiveTableConstant.authBoxName);
+
+  // ======================== AUTH QUERIES ========================== //
+
+  /// Register a new user
+  Future<void> register(AuthHiveModel user) async {
+    await _authBox.put(user.authId, user);
   }
 
-  Box<AuthHiveModel> get _authBox {
-    if (kIsWeb) {
-      throw UnsupportedError('Hive box not available on web');
-    }
-    return Hive.box<AuthHiveModel>(HiveTableConstant.authBoxName);
-  }
-
-  // Register user
-  Future<AuthHiveModel> registerUser(AuthHiveModel model) async {
-    if (isEmailExists(model.email)) {
-      throw Exception('Email already exists');
-    }
-
-    if (kIsWeb) {
-      _webStorage[model.authId!] = model;
-    } else {
-      // Ensure we use a unique key, like email or authId
-      await _authBox.put(model.authId ?? model.email, model);
-    }
-    return model;
-  }
-
-  // Login user
-  Future<AuthHiveModel?> loginUser(String email, String password) async {
-    if (kIsWeb) {
-      final users = _webStorage.values.where(
+  /// Login - find user by email and password
+  /// Returns AuthHiveModel if found, null otherwise
+  Future<AuthHiveModel?> login(String email, String password) async {
+    try {
+      return _authBox.values.firstWhere(
         (user) => user.email == email && user.password == password,
       );
-      return users.isNotEmpty ? users.first : null;
-    } else {
-      final users = _authBox.values.where(
-        (user) => user.email == email && user.password == password,
-      );
-      if (users.isNotEmpty) {
-        return users.first;
-      }
+    } catch (e) {
       return null;
     }
   }
 
-  Future<void> logoutUser() async {}
+  /// Check if an email is already registered (Validation)
+  Future<bool> isEmailRegistered(String email) async {
+    return _authBox.values.any((user) => user.email == email);
+  }
 
-  AuthHiveModel? getCurrentUser(String authId) {
-    if (kIsWeb) {
-      return _webStorage[authId];
-    } else {
-      return _authBox.get(authId);
+  /// Get user by their Unique ID (authId)
+  Future<AuthHiveModel?> getUserById(String authId) async {
+    return _authBox.get(authId);
+  }
+
+  /// Get user by email address
+  Future<AuthHiveModel?> getUserByEmail(String email) async {
+    try {
+      return _authBox.values.firstWhere((user) => user.email == email);
+    } catch (e) {
+      return null;
     }
   }
 
-  bool isEmailExists(String email) {
-    if (kIsWeb) {
-      final users = _webStorage.values.where((user) => user.email == email);
-      return users.isNotEmpty;
-    } else {
-      final users = _authBox.values.where((user) => user.email == email);
-      return users.isNotEmpty;
+  /// Update existing user information
+  Future<bool> updateUser(AuthHiveModel user) async {
+    if (_authBox.containsKey(user.authId)) {
+      await _authBox.put(user.authId, user);
+      return true;
     }
+    return false;
+  }
+
+  /// Delete user from local database
+  Future<void> deleteUser(String authId) async {
+    await _authBox.delete(authId);
+  }
+
+  /// Clear all auth data (Useful for full logout/factory reset)
+  Future<void> clearAllData() async {
+    await _authBox.clear();
+  }
+
+  // Box close
+  Future<void> close() async {
+    await Hive.close();
   }
 }

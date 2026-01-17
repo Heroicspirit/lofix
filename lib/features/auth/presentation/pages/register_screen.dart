@@ -41,11 +41,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    final username = email.split('@')[0];
+    final name = email.split('@')[0];
     // Call view model register method
     ref.read(authViewModelProvider.notifier).register(
           email: email,
-          username: username,
+          name: name,
           password: password,
           // If your entity supports gender, pass it here
         );
@@ -112,7 +112,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
             _buildLabel("Gender"),
             DropdownButtonFormField<String>(
-              value: selectedGender,
+              initialValue: selectedGender,
               hint: const Text("Select gender"),
               items: const ["Male", "Female", "Others"]
                   .map((g) => DropdownMenuItem(value: g, child: Text(g)))
