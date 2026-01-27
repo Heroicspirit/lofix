@@ -8,11 +8,14 @@ class AuthState extends Equatable {
   final AuthStatus status;
   final AuthEntity? authEntity;
   final String? errorMessage;
+  final String? uploadPhotoName;
+
 
   const AuthState({
     required this.status,
     this.authEntity,
     this.errorMessage,
+    this.uploadPhotoName,
   });
 
   // Initial State Factory
@@ -29,12 +32,14 @@ class AuthState extends Equatable {
     AuthStatus? status,
     AuthEntity? authEntity,
     String? errorMessage,
+    String? uploadPhotoName,
   }) {
     return AuthState(
       status: status ?? this.status,
- 
+
       authEntity: authEntity ?? this.authEntity,
       errorMessage: errorMessage ?? this.errorMessage,
+      uploadPhotoName: uploadPhotoName ?? this.uploadPhotoName,
     );
   }
 
