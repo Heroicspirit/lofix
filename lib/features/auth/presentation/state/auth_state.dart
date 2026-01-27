@@ -36,7 +36,6 @@ class AuthState extends Equatable {
   }) {
     return AuthState(
       status: status ?? this.status,
-
       authEntity: authEntity ?? this.authEntity,
       errorMessage: errorMessage ?? this.errorMessage,
       uploadPhotoName: uploadPhotoName ?? this.uploadPhotoName,
@@ -44,5 +43,5 @@ class AuthState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, authEntity, errorMessage];
+  List<Object?> get props => [status, authEntity, errorMessage, uploadPhotoName];
 }

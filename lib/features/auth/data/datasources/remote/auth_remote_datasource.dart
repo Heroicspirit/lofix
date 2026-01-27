@@ -107,13 +107,33 @@ Future<String> uploadImage(File image) async {
     );
 
     if (response.statusCode == 200) {
-      return response.data['message'] ?? "Profile updated successfully";
+      // Handle different response formats safely
+      if (response.data is Map<String, dynamic>) {
+        final data = response.data as Map<String, dynamic>;
+        
+        // Try to extract filename from different possible response structures
+        if (data['success'] == true && data['data'] != null) {
+          final uploadData = data['data'];
+          if (uploadData is Map<String, dynamic>) {
+            return uploadData['filename']?.toString() ?? uploadData['profilePicture']?.toString() ?? 'profile_image.jpg';
+          } else if (uploadData is String) {
+            return uploadData;
+          }
+        }
+        
+        // Fallback to message field
+        return data['message']?.toString() ?? "Profile updated successfully";
+      } else if (response.data is String) {
+        return response.data;
+      } else {
+        return "Profile updated successfully";
+      }
     } else {
       return "Failed to update profile";
     }
   } on DioException catch (e) {
     throw Exception(
-      "Server Error: ${e.response?.data['message'] ?? e.message}",
+      "Server Error: ${e.response?.data?['message'] ?? e.message}",
     );
   } catch (e) {
     throw Exception("Unexpected Error: $e");
