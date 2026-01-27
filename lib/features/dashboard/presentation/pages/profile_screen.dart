@@ -1,7 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:musicapp/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:permission_handler/permission_handler.dart'; // FIXES THE ERROR
 import 'package:musicapp/core/services/storage/user_session_service.dart';
+
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -11,161 +15,126 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  // Use your defined colors
-  final Color primaryGreen = Colors.green;
-  final String fontFamily = 'Poppins Regular';
+  final ImagePicker _picker = ImagePicker();
+  File? _localImage;
+
+  // --- Permission Handling ---
+  Future<void> _checkPermissionAndPick(ImageSource source) async {
+    PermissionStatus status;
+    if (source == ImageSource.camera) {
+      status = await Permission.camera.request();
+    } else {
+      // For Gallery
+      status = Platform.isAndroid 
+          ? await Permission.storage.request() 
+          : await Permission.photos.request();
+    }
+
+    if (status.isGranted) {
+      _pickImage(source);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Permission denied. Please enable it in settings.")),
+      );
+    }
+  }
+
+  // --- Image Picking ---
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 70,
+      preferredCameraDevice: CameraDevice.front,
+    );
+    
+    if (pickedFile != null) {
+      final imageFile = File(pickedFile.path);
+      setState(() {
+        _localImage = imageFile;
+      });
+
+      // Upload via the ViewModel you provided
+      await ref.read(authViewModelProvider.notifier).uploadPhoto(imageFile);
+    }
+  }
+
+  // --- Bottom Sheet UI ---
+  void _showPickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () {
+                Navigator.pop(context);
+                _checkPermissionAndPick(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _checkPermissionAndPick(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final userSession = ref.watch(userSessionServiceProvider);
     final userName = userSession.getUsername() ?? 'User';
-    final userEmail = userSession.getUserEmail() ?? 'email@example.com';
-    final profileImage = userSession.getUserProfileImage();
+    final userEmail = userSession.getUserEmail() ?? 'No Email';
+    final profileImageUrl = userSession.getUserProfileImage();
 
-    // Construct the full URL for the server image
-    final displayImage = profileImage != null && profileImage.isNotEmpty
-        ? 'http://10.0.2.2:5050/$profileImage'
-        : null;
+    // Logic: Local preview > Remote image > Initial placeholder
+    ImageProvider? imageToShow;
+    if (_localImage != null) {
+      imageToShow = FileImage(_localImage!);
+    } else if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+      // NOTE: Change 10.0.2.2 to your specific backend IP if needed
+      imageToShow = NetworkImage('http://10.0.2.2:5000/public/uploads/$profileImageUrl');
+    }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
-        children: [
-          // --- Custom Header ---
-          _buildProfileHeader(userName, userEmail, displayImage),
-
-          const SizedBox(height: 20),
-
-          // --- Menu Options ---
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+      appBar: AppBar(title: const Text("Profile")),
+      body: Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            Stack(
+              alignment: Alignment.bottomRight,
               children: [
-                _buildMenuTile(Icons.person_outline, "Account Settings", "Manage your profile"),
-                _buildMenuTile(Icons.notifications_none, "Notifications", "Alerts and updates"),
-                _buildMenuTile(Icons.security, "Privacy & Security", "Control your data"),
-                const Divider(),
-                _buildMenuTile(
-                  Icons.logout, 
-                  "Logout", 
-                  "Sign out of your account", 
-                  isDestructive: true,
-                  onTap: () => _showLogoutDialog(context),
+                CircleAvatar(
+                  radius: 60,
+                  backgroundImage: imageToShow,
+                  child: imageToShow == null 
+                      ? Text(userName[0].toUpperCase(), style: const TextStyle(fontSize: 40)) 
+                      : null,
+                ),
+                IconButton(
+                  onPressed: _showPickerOptions,
+                  icon: const CircleAvatar(
+                    backgroundColor: Colors.green,
+                    child: Icon(Icons.edit, color: Colors.white, size: 18),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(String name, String email, String? imageUrl) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(top: 60, bottom: 30),
-      decoration: BoxDecoration(
-        color: primaryGreen,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-      ),
-      child: Column(
-        children: [
-          // Profile Picture with Edit Button
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white,
-                  backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
-                  child: imageUrl == null
-                      ? Text(name[0].toUpperCase(), 
-                          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: primaryGreen))
-                      : null,
-                ),
-              ),
-              // The Camera Trigger
-              GestureDetector(
-                onTap: _pickMedia, // Uses your existing logic
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.camera_alt, color: primaryGreen, size: 20),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Text(
-            name,
-            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            email,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuTile(IconData icon, String title, String subtitle, {bool isDestructive = false, VoidCallback? onTap}) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDestructive ? Colors.red.withOpacity(0.1) : primaryGreen.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: isDestructive ? Colors.red : primaryGreen),
-      ),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: isDestructive ? Colors.red : Colors.black87)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                // TODO: Add your logout logic here
-                Navigator.of(context).pop();
-              },
-              child: const Text('Logout', style: TextStyle(color: Colors.red)),
-            ),
+            const SizedBox(height: 20),
+            Text(userName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(userEmail),
           ],
-        );
-      },
-    );
-  }
-
-  // Dummy implementation for picking media (e.g., image picker)
-  void _pickMedia() async {
-    // TODO: Implement media picking logic here
-    // For now, just show a snackbar as a placeholder
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Pick media tapped!')),
+        ),
+      ),
     );
   }
 }

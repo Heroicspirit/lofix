@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:musicapp/features/auth/domain/enities/auth_entity.dart';
 
 
-enum AuthStatus { initial, loading, authenticated, unauthenticated, registered, error }
+enum AuthStatus { initial, loading, authenticated, unauthenticated, registered, loaded,error }
 
 class AuthState extends Equatable {
   final AuthStatus status;
