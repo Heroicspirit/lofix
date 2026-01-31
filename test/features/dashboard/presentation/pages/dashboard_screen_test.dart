@@ -10,7 +10,7 @@ import 'package:musicapp/features/dashboard/presentation/pages/profile_screen.da
 
 // 1. Create Mock classes
 class MockUserSessionService extends Mock implements UserSessionService {}
-class MockAuthViewModel extends AuthViewModel with Mock {} // Use the fixed Mock style
+class MockAuthViewModel extends AuthViewModel with Mock {} 
 
 void main() {
   late MockUserSessionService mockSessionService;

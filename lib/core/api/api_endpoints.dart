@@ -2,8 +2,8 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Base URL - change this for production
-  // static const String baseUrl = 'http://10.0.2.2:5000/api/';
-  static const String baseUrl = 'http://192.168.1.74:5000/api/';
+  static const String baseUrl = 'http://10.0.2.2:5000/api/';
+  // static const String baseUrl = 'http://192.168.1.74:5000/api/';
   
   //static const String baseUrl = 'http://192.168./api/`  v1';
   // For Android Emulator use: 'http://10.0.2.2:3000/api/v1'

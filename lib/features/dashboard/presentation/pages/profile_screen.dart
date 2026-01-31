@@ -74,7 +74,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (_localImage != null) {
       imageToShow = FileImage(_localImage!);
     } else if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
-      imageToShow = NetworkImage('http://192.168.1.74:5000/public/profile_pictures/$profileImageUrl');
+      imageToShow = NetworkImage('http://10.0.2.2:5000/public/profile_pictures/$profileImageUrl');
     }
 
     return Scaffold(

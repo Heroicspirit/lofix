@@ -7,19 +7,15 @@ import 'package:musicapp/features/auth/presentation/state/auth_state.dart';
 import 'package:musicapp/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:musicapp/features/dashboard/presentation/pages/dashboard_screen.dart';
 
-// 1. Enhanced Mock Class
-// Extending AuthViewModel satisfies Riverpod's internal plumbing (_setElement).
-// Mixing in Mock allows us to use Mocktail's 'when' and 'verify'.
+
 class MockAuthViewModel extends AuthViewModel with Mock {
   @override
   AuthState build() => AuthState.initial();
 
-  // We override the real login method with an empty one.
-  // This prevents the real code from trying to use uninitialized 'late' usecases.
+
   @override
   Future<void> login({required String email, required String password}) async {}
 
-  // Helper to manually push new states to the UI
   void emit(AuthState newState) {
     state = newState;
   }
@@ -32,11 +28,11 @@ void main() {
     mockAuthViewModel = MockAuthViewModel();
   });
 
-  // Helper function to build the widget under test
+
   Widget createLoginScreen() {
     return ProviderScope(
       overrides: [
-        // Correctly override the NotifierProvider
+
         authViewModelProvider.overrideWith(() => mockAuthViewModel),
       ],
       child: const MaterialApp(
