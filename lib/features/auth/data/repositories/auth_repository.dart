@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,18 +105,18 @@ class AuthRepository implements IAuthRepository {
 
   @override
   Future<Either<Failure, bool>> register(AuthEntity user) async {
-    print('🏢 Repository: Starting register for ${user.email}');
+    print('Repository: Starting register for ${user.email}');
     
     if (await _networkInfo.isConnected) {
-      print('🌐 Online mode - calling API');
+      print(' Online mode - calling API');
       try {
         final apiModel = AuthApiModel.fromEntity(user);
-        print('📤 Calling remote datasource');
+        print(' Calling remote datasource');
         await _authRemoteDataSource.register(apiModel);
-        print('✅ API registration successful');
+        print(' API registration successful');
         return const Right(true);
       } on DioException catch (e) {
-        print('❌ DioException: ${e.message}');
+        print(' DioException: ${e.message}');
         
         String errorMessage = 'Registration Failed';
         
@@ -135,7 +137,7 @@ class AuthRepository implements IAuthRepository {
           ),
         );
       } catch (e) {
-        print('💥 API Exception: ${e.toString()}');
+        print(' API Exception: ${e.toString()}');
         return Left(ApiFailure(message: e.toString()));
       }
     } else {
@@ -143,11 +145,11 @@ class AuthRepository implements IAuthRepository {
       try {
         final model = AuthHiveModel.fromEntity(user);
 
-        // ✅ returns AuthHiveModel
+        //  returns AuthHiveModel
         final savedUser = await _authLocalDatasource.register(model);
 
         if (savedUser.authId != null) {
-          print('✅ Local registration successful');
+          print(' Local registration successful');
           return const Right(true);
         }
 
@@ -155,7 +157,7 @@ class AuthRepository implements IAuthRepository {
           LocalDatabaseFailure(message: "Failed to register user"),
         );
       } catch (e) {
-        print('💥 Local Exception: ${e.toString()}');
+        print(' Local Exception: ${e.toString()}');
         return Left(LocalDatabaseFailure(message: e.toString()));
       }
     }
@@ -173,6 +175,70 @@ class AuthRepository implements IAuthRepository {
       );
     } catch (e) {
       return Left(LocalDatabaseFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<bool> isEmailExists(String email) async {
+    try {
+      return await _authLocalDatasource.isEmailExists(email);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> deleteUser(String authId) async {
+    try {
+      final result = await _authLocalDatasource.deleteUser(authId);
+      return Right(result);
+    } catch (e) {
+      return Left(LocalDatabaseFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity?>> getUserByEmail(String email) async {
+    try {
+      final user = await _authLocalDatasource.getUserByEmail(email);
+      return Right(user?.toEntity());
+    } catch (e) {
+      return Left(LocalDatabaseFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity?>> getUserById(String authId) async {
+    try {
+      final user = await _authLocalDatasource.getUserById(authId);
+      return Right(user?.toEntity());
+    } catch (e) {
+      return Left(LocalDatabaseFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> updateUser(AuthEntity entity) async {
+    try {
+      final model = AuthHiveModel.fromEntity(entity);
+      final result = await _authLocalDatasource.updateUser(model);
+      return Right(result);
+    } catch (e) {
+      return Left(LocalDatabaseFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploadImage(File image) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final fileName = await _authRemoteDataSource.uploadImage(image);
+        return Right(fileName);
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return Left(ApiFailure(message: 'No internet connection'));
     }
   }
 }

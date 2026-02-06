@@ -27,15 +27,14 @@ class UserSessionService {
     required String userId,
     required String email,
     required String name,
-  
-    String? profileImage,
+    String? profilePicture,
   }) async {
     await _prefs.setBool(_keyIsLoggedIn, true);
     await _prefs.setString(_keyUserId, userId);
     await _prefs.setString(_keyUserEmail, email);
     await _prefs.setString(_keyUsername, name);
-    if (profileImage != null) {
-      await _prefs.setString(_keyUserProfileImage, profileImage);
+    if (profilePicture != null) {
+      await _prefs.setString(_keyUserProfileImage, profilePicture);
     }
   }
 
@@ -69,5 +68,18 @@ class UserSessionService {
 
   String? getUserProfileImage() {
     return _prefs.getString(_keyUserProfileImage);
+  }
+
+// Update only the profile image path
+  Future<void> saveUserProfileImage(String imagePath) async {
+    await _prefs.setString(_keyUserProfileImage, imagePath);
+  }
+  // Clear user session (logout)
+  Future<void> clearSession() async {
+    await _prefs.remove(_keyIsLoggedIn);
+    await _prefs.remove(_keyUserId);
+    await _prefs.remove(_keyUserEmail);
+    await _prefs.remove(_keyUsername);
+    await _prefs.remove(_keyUserProfileImage);
   }
 }
