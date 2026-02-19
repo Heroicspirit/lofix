@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:musicapp/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:musicapp/features/auth/presentation/pages/login_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:musicapp/core/services/storage/user_session_service.dart';
 
@@ -16,6 +17,40 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   File? _localImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage();
+  }
+
+  void _loadProfileImage() {
+    final userSession = ref.read(userSessionServiceProvider);
+    final profileImageUrl = userSession.getUserProfileImage();
+    
+    if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+      print('Loading profile image: $profileImageUrl');
+      // Force a rebuild to show the saved profile image
+      setState(() {});
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    try {
+      // Call the logout method from auth view model
+      await ref.read(authViewModelProvider.notifier).logout();
+      
+      // Navigate to login screen
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      print('Error during logout: $e');
+    }
+  }
 
   // --- Permission Handling (Gallery Fix) ---
   Future<void> _checkPermissionAndPick(ImageSource source) async {
@@ -74,7 +109,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (_localImage != null) {
       imageToShow = FileImage(_localImage!);
     } else if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
-      imageToShow = NetworkImage('http://10.0.2.2:5000/public/profile_pictures/$profileImageUrl');
+      print('Raw profileImageUrl: $profileImageUrl');
+      
+      // Remove /upload/ prefix if it exists to avoid duplication
+      final cleanImageUrl = profileImageUrl.startsWith('/upload/') 
+          ? profileImageUrl.substring(7)
+          : profileImageUrl;
+      
+      final finalUrl = 'http://192.168.1.67:5000/upload/$cleanImageUrl';
+      print('Clean image URL: $finalUrl');
+      
+      imageToShow = NetworkImage(finalUrl);
     }
 
     return Scaffold(
@@ -83,7 +128,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: () => ref.read(authViewModelProvider.notifier).logout(),
+            onPressed: _handleLogout,
             icon: const Icon(Icons.logout, color: Colors.red),
           )
         ],

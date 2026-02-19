@@ -6,27 +6,6 @@ import 'package:musicapp/features/auth/presentation/pages/login_screen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:flutter/foundation.dart';
 
-final GlobalKey<NavigatorState> navigatorKey =
-    GlobalKey<NavigatorState>();
-
-class App extends ConsumerWidget {
-  const App({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(themeProvider);
-
-    return SensorGestureDetector(
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        theme: theme,
-        home: const LoginScreen(), // Change if needed
-      ),
-    );
-  }
-}
-
 class SensorGestureDetector extends ConsumerStatefulWidget {
   final Widget child;
 
@@ -36,12 +15,10 @@ class SensorGestureDetector extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SensorGestureDetector> createState() =>
-      _SensorGestureDetectorState();
+  ConsumerState<SensorGestureDetector> createState() => _SensorGestureDetectorState();
 }
 
-class _SensorGestureDetectorState
-    extends ConsumerState<SensorGestureDetector> {
+class _SensorGestureDetectorState extends ConsumerState<SensorGestureDetector> {
   var _accelerometerSubscription;
   bool _isShaking = false;
   DateTime? _lastShakeTime;
@@ -60,22 +37,17 @@ class _SensorGestureDetectorState
   }
 
   void _initShakeDetection() {
-    _accelerometerSubscription =
-        accelerometerEvents.listen((AccelerometerEvent event) {
-      final double acceleration =
-          (event.x.abs() + event.y.abs() + event.z.abs()) / 3;
-
+    _accelerometerSubscription = accelerometerEvents.listen((AccelerometerEvent event) {
+      final double acceleration = (event.x.abs() + event.y.abs() + event.z.abs()) / 3;
       final DateTime now = DateTime.now();
 
-      if (acceleration > 14) { 
-        if (_lastShakeTime == null ||
+      if (acceleration > 12) {
+        if (_lastShakeTime == null || 
             now.difference(_lastShakeTime!).inMilliseconds > 1000) {
           _lastShakeTime = now;
-
           if (!_isShaking) {
             _isShaking = true;
             _handleShake();
-
             Future.delayed(const Duration(seconds: 2), () {
               _isShaking = false;
             });
@@ -88,22 +60,25 @@ class _SensorGestureDetectorState
   void _handleShake() async {
     print('Shake detected! Starting logout process...');
     try {
-      final userSessionService =
-          ref.read(userSessionServiceProvider);
-
+      final userSessionService = ref.read(userSessionServiceProvider);
       await userSessionService.logout();
-
       print('Logout completed successfully');
-
-
-      navigatorKey.currentState?.pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
-        ),
-        (route) => false,
-      );
-
-      print('Navigation completed');
+      
+      // Use a more reliable navigation approach
+      if (mounted) {
+        print('Navigating to login screen...');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+            print('Navigation completed');
+          }
+        });
+      } else {
+        print('Widget not mounted, cannot navigate');
+      }
     } catch (e) {
       print('Error during logout: $e');
     }
@@ -117,18 +92,15 @@ class _SensorGestureDetectorState
       behavior: HitTestBehavior.translucent,
       onTapDown: (details) {
         final now = DateTime.now();
-
         if (_lastTapTime != null) {
-          final timeSinceLastTap =
-              now.difference(_lastTapTime!);
-
+          final timeSinceLastTap = now.difference(_lastTapTime!);
           if (timeSinceLastTap.inMilliseconds < 300) {
+            // Double tap detected
             if (kDebugMode) {
               print('Double tap detected!');
             }
-
             themeNotifier.toggleTheme();
-            _lastTapTime = null;
+            _lastTapTime = null; // Reset to avoid triple tap
           } else {
             _lastTapTime = now;
           }

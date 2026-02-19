@@ -25,6 +25,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Column(
         children: [
+          // Skip button at the top
+          Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 50, right: 20),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context, 
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+                child: const Text(
+                  "Skip",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: PageView.builder(
               controller: swipeController,

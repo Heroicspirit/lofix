@@ -34,16 +34,16 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
           "Home",
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
-        leading: const Icon(Icons.music_note, color: Colors.black),
+        leading: Icon(Icons.music_note, color: Theme.of(context).iconTheme.color),
       ),
 
       body: SingleChildScrollView(

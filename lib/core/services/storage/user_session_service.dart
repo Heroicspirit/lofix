@@ -82,4 +82,9 @@ class UserSessionService {
     await _prefs.remove(_keyUsername);
     await _prefs.remove(_keyUserProfileImage);
   }
+
+  // Logout method
+  Future<void> logout() async {
+    await clearSession();
+  }
 }

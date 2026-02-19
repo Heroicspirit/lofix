@@ -59,13 +59,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       } else if (next.status == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage ?? 'Login failed'), backgroundColor: Colors.red),
+          SnackBar(content: Text(next.errorMessage ?? 'Login failed'), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

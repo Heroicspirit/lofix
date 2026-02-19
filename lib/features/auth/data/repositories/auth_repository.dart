@@ -105,51 +105,22 @@ class AuthRepository implements IAuthRepository {
 
   @override
   Future<Either<Failure, bool>> register(AuthEntity user) async {
-    print('Repository: Starting register for ${user.email}');
-    
     if (await _networkInfo.isConnected) {
-      print(' Online mode - calling API');
       try {
         final apiModel = AuthApiModel.fromEntity(user);
-        print(' Calling remote datasource');
         await _authRemoteDataSource.register(apiModel);
-        print(' API registration successful');
         return const Right(true);
       } on DioException catch (e) {
-        print(' DioException: ${e.message}');
-        
         String errorMessage = 'Registration Failed';
-        
-        // Safely extract error message from response
-        if (e.response?.data != null) {
-          if (e.response!.data is Map) {
-            errorMessage = e.response!.data['message'] ?? errorMessage;
-          } else if (e.response!.data is String) {
-            // Handle HTML error pages or plain text responses
-            errorMessage = 'Server error: ${e.response!.statusCode}';
-          }
-        }
-        
-        return Left(
-          ApiFailure(
-            message: errorMessage,
-            statusCode: e.response?.statusCode,
-          ),
-        );
-      } catch (e) {
-        print(' API Exception: ${e.toString()}');
         return Left(ApiFailure(message: e.toString()));
       }
     } else {
-      print('📱 Offline mode - using local storage');
       try {
         final model = AuthHiveModel.fromEntity(user);
 
-        //  returns AuthHiveModel
         final savedUser = await _authLocalDatasource.register(model);
 
         if (savedUser.authId != null) {
-          print(' Local registration successful');
           return const Right(true);
         }
 
@@ -178,7 +149,6 @@ class AuthRepository implements IAuthRepository {
     }
   }
 
-  @override
   Future<bool> isEmailExists(String email) async {
     try {
       return await _authLocalDatasource.isEmailExists(email);
@@ -187,7 +157,6 @@ class AuthRepository implements IAuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, bool>> deleteUser(String authId) async {
     try {
       final result = await _authLocalDatasource.deleteUser(authId);
@@ -197,7 +166,6 @@ class AuthRepository implements IAuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, AuthEntity?>> getUserByEmail(String email) async {
     try {
       final user = await _authLocalDatasource.getUserByEmail(email);
@@ -207,7 +175,6 @@ class AuthRepository implements IAuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, AuthEntity?>> getUserById(String authId) async {
     try {
       final user = await _authLocalDatasource.getUserById(authId);
@@ -217,7 +184,6 @@ class AuthRepository implements IAuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, bool>> updateUser(AuthEntity entity) async {
     try {
       final model = AuthHiveModel.fromEntity(entity);

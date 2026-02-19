@@ -42,11 +42,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     final name = email.split('@')[0];
-    // Call view model register method
+    // Call view model register method with confirmPassword
     ref.read(authViewModelProvider.notifier).register(
           email: email,
           name: name,
           password: password,
+          confirmPassword: confirmPassword,
           // If your entity supports gender, pass it here
         );
   }
@@ -70,13 +71,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Sign Up'),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),

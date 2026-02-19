@@ -20,7 +20,7 @@ class TestAuthViewModel extends AuthViewModel {
   AuthState build() => AuthState.initial();
 
   @override
-  Future<void> register({required String email, required String name, required String password}) async {
+  Future<void> register({required String email, required String name, required String password,String? confirmPassword}) async {
     // no-op for tests
   }
 
