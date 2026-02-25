@@ -26,4 +26,22 @@ class AuthEntity extends Equatable {
     confirmPassword,
     profilePicture
   ];
+
+  AuthEntity copyWith({
+    String? authId,
+    String? email,
+    String? name,
+    String? password,
+    String? confirmPassword,
+    String? profilePicture,
+  }) {
+    return AuthEntity(
+      authId: authId ?? this.authId,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      password: password ?? this.password,
+      confirmPassword: confirmPassword ?? this.confirmPassword,
+      profilePicture: profilePicture ?? this.profilePicture,
+    );
+  }
 }

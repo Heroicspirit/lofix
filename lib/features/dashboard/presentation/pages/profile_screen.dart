@@ -17,11 +17,14 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   File? _localImage;
+  bool _isEditingProfile = false;
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadProfileImage();
+    _loadUserName();
   }
 
   void _loadProfileImage() {
@@ -30,9 +33,65 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     
     if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
       print('Loading profile image: $profileImageUrl');
-      // Force a rebuild to show the saved profile image
+      // Force a rebuild to show saved profile image
       setState(() {});
     }
+  }
+
+  void _loadUserName() {
+    final userSession = ref.read(userSessionServiceProvider);
+    final userName = userSession.getUsername() ?? 'User';
+    _nameController.text = userName;
+  }
+
+  void _startEditProfile() {
+    setState(() {
+      _isEditingProfile = true;
+    });
+  }
+
+  Future<void> _saveProfile() async {
+    if (_nameController.text.trim().isEmpty) return;
+    
+    try {
+      // Update name
+      await ref.read(authViewModelProvider.notifier).updateUserName(_nameController.text.trim());
+      
+      // Upload image if changed
+      if (_localImage != null) {
+        await ref.read(authViewModelProvider.notifier).uploadPhoto(_localImage!);
+      }
+      
+      setState(() {
+        _isEditingProfile = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _cancelEditProfile() {
+    setState(() {
+      _isEditingProfile = false;
+      _localImage = null;
+    });
+    _loadUserName(); // Reset to original name
   }
 
   Future<void> _handleLogout() async {
@@ -52,41 +111,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  // --- Permission Handling (Gallery Fix) ---
-  Future<void> _checkPermissionAndPick(ImageSource source) async {
-    PermissionStatus status;
-    if (source == ImageSource.camera) {
-      status = await Permission.camera.request();
-    } else {
-      // Android 13+ logic
-      status = Platform.isAndroid 
-          ? await Permission.photos.request() 
-          : await Permission.photos.request();
-      
-      if (status.isDenied) {
-        status = await Permission.storage.request();
-      }
-    }
-
-    if (status.isGranted) {
-      _pickImage(source);
-    } else {
-      _showPermissionDeniedDialog();
-    }
-  }
-
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Permission Denied"),
-        content: const Text("We need access to your gallery to update your profile picture."),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          TextButton(onPressed: () => openAppSettings(), child: const Text("Settings")),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -94,14 +122,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (pickedFile != null) {
       final imageFile = File(pickedFile.path);
       setState(() => _localImage = imageFile);
-      await ref.read(authViewModelProvider.notifier).uploadPhoto(imageFile);
+      // Don't upload immediately - wait for save
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final userSession = ref.watch(userSessionServiceProvider);
-    final userName = userSession.getUsername() ?? 'User';
+    final userName = _isEditingProfile ? _nameController.text : (userSession.getUsername() ?? 'User');
     final userEmail = userSession.getUserEmail() ?? 'No Email';
     final profileImageUrl = userSession.getUserProfileImage();
 
@@ -150,31 +178,76 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ? Text(userName[0].toUpperCase(), style: const TextStyle(fontSize: 40)) 
                         : null,
                   ),
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    child: IconButton(
-                      icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
-                      onPressed: () => _showPickerOptions(),
+                  if (_isEditingProfile)
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      child: IconButton(
+                        icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                        onPressed: () => _showPickerOptions(),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
             const SizedBox(height: 15),
-            Text(userName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            if (_isEditingProfile)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextField(
+                  controller: _nameController,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  decoration: const InputDecoration(
+                    border: UnderlineInputBorder(),
+                    hintText: 'Enter your name',
+                  ),
+                ),
+              )
+            else
+              Text(userName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             Text(userEmail, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 30),
 
+            // --- Edit/Save Buttons ---
+            if (_isEditingProfile)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _cancelEditProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _saveProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Save'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             // --- Settings Sections ---
             _buildSectionTitle("Account Settings"),
-            _buildSettingsItem(Icons.person_outline, "Edit Profile", () {}),
+            if (!_isEditingProfile)
+              _buildSettingsItem(Icons.person_outline, "Edit Profile", _startEditProfile),
             _buildSettingsItem(Icons.lock_outline, "Change Password", () {}),
             
             const Divider(),
             _buildSectionTitle("Preferences"),
-            _buildSettingsItem(Icons.dark_mode_outlined, "Dark Mode", () {}, 
-                trailing: Switch(value: false, onChanged: (v) {})),
             _buildSettingsItem(Icons.notifications_none, "Notifications", () {}),
             
             const Divider(),
@@ -203,6 +276,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       title: Text(title),
       trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
+    );
+  }
+
+  // --- Permission Handling (Gallery Fix) ---
+  Future<void> _checkPermissionAndPick(ImageSource source) async {
+    PermissionStatus status;
+    if (source == ImageSource.camera) {
+      status = await Permission.camera.request();
+    } else {
+      // Android 13+ logic
+      status = Platform.isAndroid 
+          ? await Permission.photos.request() 
+          : await Permission.photos.request();
+      
+      if (status.isDenied) {
+        status = await Permission.storage.request();
+      }
+    }
+
+    if (status.isGranted) {
+      _pickImage(source);
+    } else {
+      _showPermissionDeniedDialog();
+    }
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Permission Denied"),
+        content: const Text("We need access to your gallery to update your profile picture."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(onPressed: () => openAppSettings(), child: const Text("Settings")),
+        ],
+      ),
     );
   }
 

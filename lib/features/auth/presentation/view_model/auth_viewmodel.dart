@@ -184,6 +184,28 @@ class AuthViewModel extends Notifier<AuthState> {
   }
 
   // ===========================
+  // UPDATE USER NAME
+  // ===========================
+
+  Future<void> updateUserName(String name) async {
+    try {
+      final userSessionService = ref.read(userSessionServiceProvider);
+      await userSessionService.updateUserName(name);
+      
+      // Also update the current auth entity if it exists
+      if (state.authEntity != null) {
+        final updatedAuthEntity = state.authEntity!.copyWith(name: name);
+        state = state.copyWith(authEntity: updatedAuthEntity);
+      }
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: 'Failed to update user name: $e',
+      );
+    }
+  }
+
+  // ===========================
   // LOGOUT
   // ===========================
 

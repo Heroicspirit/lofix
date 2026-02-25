@@ -69,6 +69,12 @@ class UserSessionService {
   Future<void> saveUserProfileImage(String imagePath) async {
     await _prefs.setString(_keyUserProfileImage, imagePath);
   }
+
+  // Update only the user name
+  Future<void> updateUserName(String name) async {
+    await _prefs.setString(_keyUsername, name);
+  }
+
   // Clear user session (logout)
   Future<void> clearSession() async {
     await _prefs.remove(_keyIsLoggedIn);
