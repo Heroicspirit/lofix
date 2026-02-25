@@ -111,7 +111,6 @@ class AuthRepository implements IAuthRepository {
         await _authRemoteDataSource.register(apiModel);
         return const Right(true);
       } on DioException catch (e) {
-        String errorMessage = 'Registration Failed';
         return Left(ApiFailure(message: e.toString()));
       }
     } else {

@@ -41,12 +41,7 @@ class UserSessionService {
   //clear user session
 
   Future<void> clearUserSession() async {
-
-    await _prefs.remove(_keyUserEmail);
-    await _prefs.remove(_keyUsername);
-    await _prefs.remove(_keyUserId);
-    await _prefs.remove(_keyIsLoggedIn);
-    await _prefs.remove(_keyUserProfileImage);
+    await _prefs.clear(); // Clear all preferences to ensure complete logout
   }
 
   //check if logged in

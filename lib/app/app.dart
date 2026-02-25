@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/app/theme/theme_provider.dart';
 import 'package:musicapp/core/services/storage/user_session_service.dart';
+import 'package:musicapp/features/splash/presentation/pages/splash_screen.dart';
 import 'package:musicapp/features/auth/presentation/pages/login_screen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:flutter/foundation.dart';
@@ -21,7 +22,7 @@ class App extends ConsumerWidget {
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         theme: theme,
-        home: const LoginScreen(), // Change if needed
+        home: const SplashScreens(), // Use splash screen to check login status
       ),
     );
   }
@@ -98,7 +99,7 @@ class _SensorGestureDetectorState
 
       navigatorKey.currentState?.pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
+          builder: (_) => LoginScreen(),
         ),
         (route) => false,
       );

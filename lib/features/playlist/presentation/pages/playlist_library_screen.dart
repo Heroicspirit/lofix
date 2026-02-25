@@ -6,14 +6,14 @@ import 'package:musicapp/features/playlist/presentation/providers/playlist_provi
 import 'package:musicapp/features/playlist/presentation/pages/playlist_detail_screen.dart';
 import 'package:musicapp/features/playlist/presentation/pages/create_playlist_screen.dart';
 
-class LibraryScreen extends ConsumerStatefulWidget {
-  const LibraryScreen({super.key});
+class PlaylistLibraryScreen extends ConsumerStatefulWidget {
+  const PlaylistLibraryScreen({super.key});
 
   @override
-  ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
+  ConsumerState<PlaylistLibraryScreen> createState() => _PlaylistLibraryScreenState();
 }
 
-class _LibraryScreenState extends ConsumerState<LibraryScreen> {
+class _PlaylistLibraryScreenState extends ConsumerState<PlaylistLibraryScreen> {
   @override
   void initState() {
     super.initState();
@@ -406,7 +406,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (context) => AlertDialog(
         backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
         title: Text(
           'Delete Playlist',
@@ -422,7 +422,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
               style: TextStyle(
@@ -432,22 +432,20 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(dialogContext);
+              Navigator.pop(context);
               try {
                 await ref.read(playlistNotifierProvider.notifier).deletePlaylist(playlist.id);
                 if (mounted) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Playlist "${playlist.name}" deleted'),
                       backgroundColor: Colors.green,
                     ),
                   );
-                  // Refresh the playlist data to show updated list
-                  ref.read(playlistNotifierProvider.notifier).loadPlaylists();
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Failed to delete playlist: $e'),
                       backgroundColor: Colors.red,

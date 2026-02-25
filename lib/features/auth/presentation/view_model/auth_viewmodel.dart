@@ -99,8 +99,8 @@ class AuthViewModel extends Notifier<AuthState> {
         if (userId != null) {
           await userSessionService.saveUserSession(
             userId: userId,
-            email: authEntity.email ?? '',
-            name: authEntity.name ?? '',
+            email: authEntity.email,
+            name: authEntity.name,
             profilePicture: authEntity.profilePicture,
           );
         }
@@ -138,8 +138,8 @@ class AuthViewModel extends Notifier<AuthState> {
         if (userId != null) {
           await userSessionService.saveUserSession(
             userId: userId,
-            email: user.email ?? '',
-            name: user.name ?? '',
+            email: user.email,
+            name: user.name,
             profilePicture: user.profilePicture,
           );
         }
