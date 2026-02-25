@@ -27,7 +27,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Widget build(BuildContext context) {
     final themeData = ref.watch(themeProvider);
     final isDarkMode = themeData.brightness == Brightness.dark;
-    final playlistsAsync = ref.watch(userPlaylistsProvider);
+    final playlists = ref.watch(playlistNotifierProvider);
     final playlistNotifier = ref.watch(playlistNotifierProvider.notifier);
 
     return Scaffold(
@@ -65,80 +65,38 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
         ],
       ),
-      body: playlistsAsync.when(
-        data: (playlists) {
-          if (playlists.isEmpty) {
-            return _buildEmptyState(isDarkMode);
-          }
-          
-          return Column(
-            children: [
-              // Quick actions
-              _buildQuickActions(isDarkMode),
-              
-              // Playlists grid
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 1.2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: playlists.length,
-                    itemBuilder: (context, index) {
-                      final playlist = playlists[index];
-                      return _buildPlaylistCard(playlist, isDarkMode);
-                    },
+      body: () {
+        if (playlists.isEmpty) {
+          return _buildEmptyState(isDarkMode);
+        }
+        
+        return Column(
+          children: [
+            // Quick actions
+            _buildQuickActions(isDarkMode),
+            
+            // Playlists grid
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
                   ),
+                  itemCount: playlists.length,
+                  itemBuilder: (context, index) {
+                    final playlist = playlists[index];
+                    return _buildPlaylistCard(playlist, isDarkMode);
+                  },
                 ),
               ),
-            ],
-          );
-        },
-        loading: () => Center(
-          child: CircularProgressIndicator(
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: isDarkMode ? Colors.white54 : Colors.black54,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error loading playlists',
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white70 : Colors.black87,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white54 : Colors.black54,
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => playlistNotifier.loadPlaylists(),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          ],
+        );
+      }(),
     );
   }
 

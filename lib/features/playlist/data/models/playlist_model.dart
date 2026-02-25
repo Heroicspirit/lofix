@@ -48,7 +48,7 @@ class PlaylistModel extends PlaylistEntity {
       description: json['description'],
       coverImage: json['coverImage']?.toString().isNotEmpty == true 
           ? json['coverImage'].toString()
-          : 'https://via.placeholder.com/300',
+          : null,
       songs: songs,
       createdAt: json['createdAt'] != null 
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
