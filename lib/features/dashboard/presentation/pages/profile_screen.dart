@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:musicapp/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:musicapp/features/auth/presentation/pages/login_screen.dart';
+import 'package:musicapp/core/services/audio/music_player_provider.dart';
+import 'package:musicapp/core/services/audio/music_player_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:musicapp/core/services/storage/user_session_service.dart';
+import 'package:musicapp/core/providers/offline_mode_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -45,6 +48,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _startEditProfile() {
+    final offlineModeState = ref.read(offlineModeProvider);
+    
+    if (!offlineModeState.canEditProfile) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot edit profile in offline mode'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
     setState(() {
       _isEditingProfile = true;
     });
@@ -96,6 +111,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _handleLogout() async {
     try {
+      // Stop music player before logout
+      final musicPlayerService = ref.read(musicPlayerServiceProvider);
+      
+      // Multiple attempts to stop music
+      try {
+        await musicPlayerService.stopSong();
+      } catch (e) {
+        print('Error stopping song: $e');
+      }
+      
+      // Also try to pause if stop doesn't work
+      try {
+        await musicPlayerService.pauseSong();
+      } catch (e) {
+        print('Error pausing song: $e');
+      }
+      
+      // Clear current song
+      ref.read(currentSongProvider.notifier).state = null;
+      ref.read(isPlayingProvider.notifier).state = false;
+      
       // Call the logout method from auth view model
       await ref.read(authViewModelProvider.notifier).logout();
       
@@ -129,14 +165,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final userSession = ref.watch(userSessionServiceProvider);
+    final offlineModeState = ref.watch(offlineModeProvider);
     final userName = _isEditingProfile ? _nameController.text : (userSession.getUsername() ?? 'User');
     final userEmail = userSession.getUserEmail() ?? 'No Email';
     final profileImageUrl = userSession.getUserProfileImage();
 
     ImageProvider? imageToShow;
+    // Don't load images in offline mode
     if (_localImage != null) {
       imageToShow = FileImage(_localImage!);
-    } else if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+    } else if (profileImageUrl != null && 
+               profileImageUrl.isNotEmpty && 
+               offlineModeState.canLoadImages) {
       print('Raw profileImageUrl: $profileImageUrl');
       
       // Remove /upload/ prefix if it exists to avoid duplication
@@ -243,7 +283,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             // --- Settings Sections ---
             _buildSectionTitle("Account Settings"),
             if (!_isEditingProfile)
-              _buildSettingsItem(Icons.person_outline, "Edit Profile", _startEditProfile),
+              _buildSettingsItem(Icons.person_outline, "Edit Profile", offlineModeState.canEditProfile ? _startEditProfile : () {}),
             _buildSettingsItem(Icons.lock_outline, "Change Password", () {}),
             
             const Divider(),

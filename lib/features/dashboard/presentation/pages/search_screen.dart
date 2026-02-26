@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/app/theme/theme_provider.dart';
 import 'package:musicapp/core/services/audio/music_player_provider.dart';
+import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 import 'package:musicapp/features/dashboard/presentation/pages/now_playing_screen.dart';
 import 'package:musicapp/features/playlist/domain/entities/playlist_entity.dart';
@@ -31,6 +32,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Future<void> _searchSongs(String query) async {
     if (query.isEmpty || query == _lastQuery) return;
+    
+    // Check if offline mode restricts search
+    final offlineModeState = ref.read(offlineModeProvider);
+    if (!offlineModeState.canSearch) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot search in offline mode'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     
     setState(() {
       _isLoading = true;
@@ -217,8 +230,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Widget _buildSearchResultItem(MusicEntity song, bool isDarkMode) {
+    final offlineModeState = ref.read(offlineModeProvider);
+    
     return GestureDetector(
       onTap: () {
+        // Check if offline mode restricts playback
+        if (!offlineModeState.canPlayMusic) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cannot play music in offline mode'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          return;
+        }
+
         // Update the song list in provider for next/previous functionality
         ref.read(songListProvider.notifier).state = _searchResults;
         
@@ -244,24 +270,38 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             // Album cover
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                song.imageUrl,
-                height: 60,
-                width: 60,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 60,
-                    width: 60,
-                    color: isDarkMode ? Colors.grey[700] : Colors.grey[300],
-                    child: Icon(
-                      Icons.music_note,
-                      color: isDarkMode ? Colors.white54 : Colors.black54,
-                      size: 30,
+              child: offlineModeState.canLoadImages
+                  ? Image.network(
+                      song.imageUrl,
+                      height: 60,
+                      width: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 60,
+                          width: 60,
+                          color: isDarkMode ? Colors.grey[700] : Colors.grey[300],
+                          child: Icon(
+                            Icons.music_note,
+                            color: isDarkMode ? Colors.white54 : Colors.black54,
+                            size: 30,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      height: 60,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: isDarkMode ? Colors.grey[700] : Colors.grey[300],
+                      ),
+                      child: Icon(
+                        Icons.music_note,
+                        color: isDarkMode ? Colors.white54 : Colors.black54,
+                        size: 30,
+                      ),
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(width: 12),
             

@@ -31,9 +31,7 @@ class AuthViewModel extends Notifier<AuthState> {
     return AuthState.initial();
   }
 
-  // ===========================
-  // REGISTER
-  // ===========================
+
 
   Future<void> register({
     required String email,
@@ -65,9 +63,7 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  // ===========================
-  // LOGIN
-  // ===========================
+
 
   Future<void> login({
     required String email,
@@ -113,9 +109,7 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  // ===========================
-  // GET CURRENT USER
-  // ===========================
+
 
   Future<void> getCurrentUser() async {
     state = state.copyWith(status: AuthStatus.loading);
@@ -152,9 +146,7 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  // ===========================
-  // UPLOAD PHOTO
-  // ===========================
+
 
   Future<void> uploadPhoto(File photo) async {
     state = state.copyWith(status: AuthStatus.loading);
@@ -183,9 +175,7 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  // ===========================
-  // UPDATE USER NAME
-  // ===========================
+
 
   Future<void> updateUserName(String name) async {
     try {
@@ -205,9 +195,6 @@ class AuthViewModel extends Notifier<AuthState> {
     }
   }
 
-  // ===========================
-  // LOGOUT
-  // ===========================
 
   Future<void> logout() async {
     state = state.copyWith(status: AuthStatus.loading);
@@ -231,10 +218,6 @@ class AuthViewModel extends Notifier<AuthState> {
       },
     );
   }
-
-  // ===========================
-  // HELPERS
-  // ===========================
 
   void resetState() {
     state = AuthState.initial();

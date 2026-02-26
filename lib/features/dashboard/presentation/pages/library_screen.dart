@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/app/theme/theme_provider.dart';
+import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/playlist/domain/entities/playlist_entity.dart';
 import 'package:musicapp/features/playlist/presentation/providers/playlist_provider.dart';
 import 'package:musicapp/features/playlist/presentation/pages/playlist_detail_screen.dart';
@@ -50,6 +51,18 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               color: isDarkMode ? Colors.white : Colors.black,
             ),
             onPressed: () async {
+              // Check if offline mode restricts playlist creation
+              final offlineModeState = ref.read(offlineModeProvider);
+              if (!offlineModeState.canCreatePlaylists) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Cannot create playlists in offline mode'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
+
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -233,6 +246,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Widget _buildPlaylistCard(PlaylistEntity playlist, bool isDarkMode) {
+    final offlineModeState = ref.read(offlineModeProvider);
+    
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -246,7 +261,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         decoration: BoxDecoration(
           color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
           borderRadius: BorderRadius.circular(12),
-          image: playlist.coverImage != null
+          image: playlist.coverImage != null && offlineModeState.canLoadImages
               ? DecorationImage(
                   image: NetworkImage(playlist.coverImage!),
                   fit: BoxFit.cover,
@@ -361,6 +376,18 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   void _showDeletePlaylistDialog(PlaylistEntity playlist) {
     final themeData = ref.read(themeProvider);
     final isDarkMode = themeData.brightness == Brightness.dark;
+    final offlineModeState = ref.read(offlineModeProvider);
+    
+    // Check if offline mode restricts playlist deletion
+    if (!offlineModeState.canDeletePlaylists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot delete playlists in offline mode'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     
     showDialog(
       context: context,

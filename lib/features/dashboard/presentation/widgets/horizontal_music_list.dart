@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/music_entity.dart';
 import 'package:musicapp/core/services/audio/music_player_provider.dart';
+import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import '../pages/now_playing_screen.dart';
 
 class HorizontalMusicList extends ConsumerWidget {
@@ -14,6 +15,7 @@ class HorizontalMusicList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentSong = ref.watch(currentSongProvider);
     final isPlaying = ref.watch(isPlayingProvider);
+    final offlineModeState = ref.watch(offlineModeProvider);
 
     return SizedBox(
       height: 210,
@@ -28,6 +30,17 @@ class HorizontalMusicList extends ConsumerWidget {
           
           return GestureDetector(
             onTap: () {
+              // Check if offline mode restricts playback
+              if (!offlineModeState.canPlayMusic) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Cannot play music in offline mode'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
+
               // Update the song list in provider for next/previous functionality
               ref.read(songListProvider.notifier).state = data;
               
@@ -56,26 +69,36 @@ class HorizontalMusicList extends ConsumerWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: CachedNetworkImage(
-                          imageUrl: song.imageUrl,
-                          height: 130,
-                          width: 150,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            height: 130,
-                            width: 150,
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            height: 130,
-                            width: 150,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.music_note, size: 40),
-                          ),
-                        ),
+                        child: offlineModeState.canLoadImages 
+                            ? CachedNetworkImage(
+                                imageUrl: song.imageUrl,
+                                height: 130,
+                                width: 150,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  height: 130,
+                                  width: 150,
+                                  color: Colors.grey[300],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  height: 130,
+                                  width: 150,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.music_note, size: 40),
+                                ),
+                              )
+                            : Container(
+                                height: 130,
+                                width: 150,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.grey[300],
+                                ),
+                                child: const Icon(Icons.music_note, size: 40, color: Colors.white),
+                              ),
                       ),
                       // Play/Pause overlay
                       Positioned(

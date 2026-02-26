@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/app/theme/theme_provider.dart';
 import 'package:musicapp/core/services/audio/music_player_provider.dart';
 import 'package:musicapp/core/services/audio/music_player_service.dart';
+import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 
 class NowPlayingScreen extends ConsumerWidget {
@@ -23,6 +24,7 @@ class NowPlayingScreen extends ConsumerWidget {
     final musicPlayerService = ref.watch(musicPlayerServiceProvider);
     final themeData = ref.watch(themeProvider);
     final isDarkMode = themeData.brightness == Brightness.dark;
+    final offlineModeState = ref.watch(offlineModeProvider);
 
     // Use a primary color for the glow effect (ideally extracted from the image)
     const accentColor = Colors.blueAccent; 
@@ -57,7 +59,7 @@ class NowPlayingScreen extends ConsumerWidget {
                   const Spacer(),
                   
                   // 3. Immersive Album Art
-                  _buildAlbumArt(currentSong?.imageUrl ?? song.imageUrl, isPlaying),
+                  _buildAlbumArt(currentSong?.imageUrl ?? song.imageUrl, isPlaying, offlineModeState),
                   
                   const Spacer(),
 
@@ -72,7 +74,7 @@ class NowPlayingScreen extends ConsumerWidget {
                   const SizedBox(height: 40),
 
                   // 6. Refined Controls
-                  _buildControls(musicPlayerService, isPlaying, isDarkMode, accentColor),
+                  _buildControls(context, musicPlayerService, isPlaying, isDarkMode, accentColor, offlineModeState),
                   
                   const Spacer(flex: 2),
                 ],
@@ -103,7 +105,7 @@ class NowPlayingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAlbumArt(String imageUrl, bool isPlaying) {
+  Widget _buildAlbumArt(String imageUrl, bool isPlaying, dynamic offlineModeState) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
@@ -123,7 +125,17 @@ class NowPlayingScreen extends ConsumerWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
-          child: Image.network(imageUrl, fit: BoxFit.cover),
+          child: offlineModeState.canLoadImages
+              ? Image.network(imageUrl, fit: BoxFit.cover)
+              : Container(
+                  height: 320,
+                  width: 320,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    color: Colors.grey[300],
+                  ),
+                  child: const Icon(Icons.music_note, size: 80, color: Colors.white),
+                ),
         ),
       ),
     );
@@ -179,7 +191,7 @@ class NowPlayingScreen extends ConsumerWidget {
             overlayColor: accent.withOpacity(0.2),
           ),
           child: Slider(
-            value: 0.3, // TODO: Connect to musicPlayerService position
+            value: 0.3, 
             onChanged: (value) {},
           ),
         ),
@@ -200,8 +212,9 @@ class NowPlayingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildControls(MusicPlayerService service, bool isPlaying, bool isDarkMode, Color accent) {
+  Widget _buildControls(BuildContext context, MusicPlayerService service, bool isPlaying, bool isDarkMode, Color accent, dynamic offlineModeState) {
     final btnColor = isDarkMode ? Colors.white : Colors.black;
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -213,11 +226,24 @@ class NowPlayingScreen extends ConsumerWidget {
         IconButton(
           iconSize: 48,
           icon: const Icon(Icons.skip_previous_rounded),
-          onPressed: () => service.previousSong(),
-          color: btnColor,
+          onPressed: offlineModeState.canPlayMusic ? () => service.previousSong() : null,
+          color: offlineModeState.canPlayMusic ? btnColor : btnColor.withOpacity(0.3),
         ),
         GestureDetector(
-          onTap: () => isPlaying ? service.pauseSong() : service.resumeSong(),
+          onTap: () {
+            // Check if offline mode restricts playback
+            if (!offlineModeState.canPlayMusic) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Cannot play music in offline mode'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+              return;
+            }
+            
+            isPlaying ? service.pauseSong() : service.resumeSong();
+          },
           child: Container(
             height: 75,
             width: 75,
@@ -242,8 +268,8 @@ class NowPlayingScreen extends ConsumerWidget {
         IconButton(
           iconSize: 48,
           icon: const Icon(Icons.skip_next_rounded),
-          onPressed: () => service.nextSong(),
-          color: btnColor,
+          onPressed: offlineModeState.canPlayMusic ? () => service.nextSong() : null,
+          color: offlineModeState.canPlayMusic ? btnColor : btnColor.withOpacity(0.3),
         ),
         IconButton(
           icon: const Icon(Icons.repeat),

@@ -4,6 +4,7 @@ import 'package:musicapp/features/dashboard/presentation/widgets/section_header.
 import 'package:musicapp/features/dashboard/presentation/widgets/horizontal_music_list.dart';
 import 'package:musicapp/features/dashboard/presentation/widgets/top_artists_list.dart';
 import 'package:musicapp/features/dashboard/presentation/providers/music_provider.dart';
+import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -63,61 +64,51 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
 
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.wait([
-            ref.read(topPicksProvider.notifier).loadTopPicks(),
-            ref.read(newReleasesProvider.notifier).loadNewReleases(),
-          ]);
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // For You Section
-              SectionHeader(
-                title: "For You",
-                subtitle: "Based on your recent activity",
-                onSeeAll: () {
-                  
-                },
-              ),
-              _buildMusicList(topPicksAsync),
-
-              const SizedBox(height: 32),
-
-              // Top Artists Section
-              SectionHeader(
-                title: "Top Artists",
-                subtitle: "Your favorite creators",
-                onSeeAll: () {
-                  
-                },
-              ),
-              TopArtistsList(artists: topArtists),
-
-              const SizedBox(height: 32),
-
-              // Trending Now Section
-              SectionHeader(
-                title: "Trending Now",
-                subtitle: "Most played this week",
-                onSeeAll: () {
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Quick Actions Section
+            SectionHeader(
+              title: "Quick Actions",
+              subtitle: "Jump to your favorites",
+              onSeeAll: () {
                 
-                },
-              ),
-              _buildMusicList(topPicksAsync), // Reuse for now, replace with trending data later
+              },
+            ),
+            _buildMusicList(topPicksAsync, ref),
 
-              const SizedBox(height: 80),
-            ],
-          ),
+            const SizedBox(height: 32),
+
+            // Top Artists Section
+            SectionHeader(
+              title: "Top Artists",
+              subtitle: "Your favorite creators",
+              onSeeAll: () {
+                
+              },
+            ),
+            TopArtistsList(artists: topArtists),
+
+            const SizedBox(height: 32),
+
+            // Trending Now Section
+            SectionHeader(
+              title: "Trending Now",
+              subtitle: "Most played this week",
+              onSeeAll: () {
+                
+              },
+            ),
+            _buildMusicList(topPicksAsync, ref), // Reuse for now, replace with trending data later
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildMusicList(AsyncValue<List> musicAsync) {
+  Widget _buildMusicList(AsyncValue<List> musicAsync, WidgetRef ref) {
+    final offlineModeState = ref.read(offlineModeProvider);
+    
     return musicAsync.when(
       data: (musicList) {
         if (musicList.isEmpty) {
@@ -135,25 +126,49 @@ class HomeScreen extends ConsumerWidget {
         height: 210,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, stack) => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Icon(Icons.error_outline, color: Colors.red[400], size: 48),
-            const SizedBox(height: 8),
-            Text(
-              'Failed to load music',
-              style: TextStyle(color: Colors.red[400]),
+      error: (error, stack) {
+        // In offline mode, show cached content instead of error
+        if (offlineModeState.hasLimitedAccess) {
+          // Try to get cached data from Hive
+          return const SizedBox(
+            height: 210,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.music_note, size: 48, color: Colors.grey),
+                  SizedBox(height: 8),
+                  Text(
+                    'No internet connection',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              error.toString(),
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+          );
+        }
+        
+        // Show error for online mode
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red[400], size: 48),
+              const SizedBox(height: 8),
+              Text(
+                'Failed to load music',
+                style: TextStyle(color: Colors.red[400]),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                error.toString(),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
