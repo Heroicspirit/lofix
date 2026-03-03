@@ -21,10 +21,10 @@ class ApiEndpoints {
 
   // Music/Song Endpoints (matching actual backend routes)
   static const String songs = 'songs'; // GET /api/songs - gets all songs
-  static const String topPicks = 'songs/top-picks';
-  static const String newReleases = 'songs/new-releases';
-  static const String trending = 'songs/trending';
-  static const String search = 'songs/search'; // GET /api/songs/search?q=query 
+  static const String topPicks = 'songs'; // Use same endpoint as songs for now
+  static const String newReleases = 'songs'; // Use same endpoint as songs for now
+  static const String trending = 'songs'; // Use same endpoint as songs for now
+  static const String search = 'songs'; // Use same endpoint as songs for now 
 
   // Playlist Endpoints
   static const String playlists = 'playlists'; // GET /api/playlists, POST /api/playlists

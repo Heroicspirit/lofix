@@ -65,8 +65,17 @@ class PlaylistNotifier extends StateNotifier<List<PlaylistEntity>> {
 
   Future<void> addSongToPlaylist(String playlistId, String songId) async {
     try {
-      // Find the playlist and song to update
-      final playlist = state.firstWhere((p) => p.id == playlistId);
+      // Check if state is empty, load playlists first
+      if (state.isEmpty) {
+        await loadPlaylists();
+      }
+      
+      // Find the playlist safely
+      final playlistIndex = state.indexWhere((p) => p.id == playlistId);
+      if (playlistIndex == -1) {
+        throw Exception('Playlist not found');
+      }
+      
       final updatedPlaylist = await _repository.addSongToPlaylist(playlistId, MusicEntity(
         id: songId,
         title: '',
