@@ -55,25 +55,42 @@ class MusicPlayerService {
     print('DEBUG: URL length: ${url.length}');
 
     try {
+      // Check if it's the same song
+      final currentSong = _currentSongController.state;
+      final isSameSong = currentSong?.id == song.id;
+      
       // Set current song
       _currentSongController.state = song;
 
-      // Stop any current playback before starting new
-      await _audioPlayer.stop();
-      
-      // Configure player for streaming
-      await _audioPlayer.setVolume(1.0);
-      await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
-      
-      print('Attempting to play: ${song.title} - $url');
-      
-      // Play the audio
-      await _audioPlayer.play(UrlSource(url));
+      if (isSameSong && _isPlayingController.state) {
+        // Same song is already playing, do nothing
+        print('Song already playing: ${song.title}');
+        return;
+      } else if (isSameSong && !_isPlayingController.state) {
+        // Same song but paused, resume playback
+        print('Resuming playback: ${song.title}');
+        await _audioPlayer.resume();
+        _isPlayingController.state = true;
+        return;
+      } else {
+        // Different song, stop current and start new
+        print('Switching to new song: ${song.title}');
+        await _audioPlayer.stop();
+        
+        // Configure player for streaming
+        await _audioPlayer.setVolume(1.0);
+        await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
+        
+        print('Attempting to play: ${song.title} - $url');
+        
+        // Play the audio
+        await _audioPlayer.play(UrlSource(url));
 
-      // Update playing state
-      _isPlayingController.state = true;
-      
-      print('Successfully started playing: ${song.title}');
+        // Update playing state
+        _isPlayingController.state = true;
+        
+        print('Successfully started playing: ${song.title}');
+      }
     } catch (e) {
       print('Error playing song: $e');
       print('URL: $url');

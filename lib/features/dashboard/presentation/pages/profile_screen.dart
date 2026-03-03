@@ -8,6 +8,7 @@ import 'package:musicapp/core/services/audio/music_player_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:musicapp/core/services/storage/user_session_service.dart';
 import 'package:musicapp/core/providers/offline_mode_provider.dart';
+import 'package:musicapp/features/dashboard/presentation/pages/favorite_songs_screen.dart';
 
 
 
@@ -547,6 +548,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
             // --- Settings Sections ---
 
+            _buildSectionTitle("Music"),
+            
+            _buildSettingsItem(Icons.favorite, "Favorite Songs", () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const FavoriteSongsScreen(),
+                ),
+              );
+            }),
+            
+            const Divider(),
+            
             _buildSectionTitle("Account Settings"),
 
             if (!_isEditingProfile)
