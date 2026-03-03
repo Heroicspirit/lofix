@@ -7,7 +7,8 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 final userSessionServiceProvider = Provider<UserSessionService>((ref) {
-  return UserSessionService(prefs: ref.read(sharedPreferencesProvider));
+  final sharedPreferences = ref.watch(sharedPreferencesProvider);
+  return UserSessionService(prefs: sharedPreferences);
 });
 
 class UserSessionService {
@@ -21,6 +22,7 @@ class UserSessionService {
   static const String _keyUserEmail = 'user_email';
   static const String _keyUsername = 'name';
   static const String _keyUserProfileImage = 'user_profile_image';
+  static const String _keyOnboardingCompleted = 'onboarding_completed';
 
   //store user session data
   Future<void> saveUserSession({
@@ -36,17 +38,6 @@ class UserSessionService {
     if (profilePicture != null) {
       await _prefs.setString(_keyUserProfileImage, profilePicture);
     }
-  }
-
-  //clear user session
-
-  Future<void> clearUserSession() async {
-
-    await _prefs.remove(_keyUserEmail);
-    await _prefs.remove(_keyUsername);
-    await _prefs.remove(_keyUserId);
-    await _prefs.remove(_keyIsLoggedIn);
-    await _prefs.remove(_keyUserProfileImage);
   }
 
   //check if logged in
@@ -74,6 +65,12 @@ class UserSessionService {
   Future<void> saveUserProfileImage(String imagePath) async {
     await _prefs.setString(_keyUserProfileImage, imagePath);
   }
+
+  // Update only the user name
+  Future<void> updateUserName(String name) async {
+    await _prefs.setString(_keyUsername, name);
+  }
+
   // Clear user session (logout)
   Future<void> clearSession() async {
     await _prefs.remove(_keyIsLoggedIn);
@@ -81,5 +78,21 @@ class UserSessionService {
     await _prefs.remove(_keyUserEmail);
     await _prefs.remove(_keyUsername);
     await _prefs.remove(_keyUserProfileImage);
+    // Don't remove onboarding completion flag - user should not see onboarding again
+  }
+
+  // Logout method
+  Future<void> logout() async {
+    await clearSession();
+  }
+
+  // Check if onboarding is completed
+  bool isOnboardingCompleted() {
+    return _prefs.getBool(_keyOnboardingCompleted) ?? false;
+  }
+
+  // Mark onboarding as completed
+  Future<void> completeOnboarding() async {
+    await _prefs.setBool(_keyOnboardingCompleted, true);
   }
 }

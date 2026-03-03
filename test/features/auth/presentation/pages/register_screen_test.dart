@@ -18,6 +18,7 @@ class MockAuthViewModel extends AuthViewModel with Mock {
     required String email,
     required String name,
     required String password,
+    String? confirmPassword,
   }) async {}
 
   void emit(AuthState newState) {

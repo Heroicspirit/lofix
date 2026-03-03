@@ -1,18 +1,143 @@
-//stless
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:musicapp/app/theme/theme_provider.dart';
+import 'package:musicapp/core/services/storage/user_session_service.dart';
 import 'package:musicapp/features/splash/presentation/pages/splash_screen.dart';
-import 'package:musicapp/app/theme/theme.dart';
+import 'package:musicapp/features/auth/presentation/pages/login_screen.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'package:flutter/foundation.dart';
 
+final GlobalKey<NavigatorState> navigatorKey =
+    GlobalKey<NavigatorState>();
 
-class App extends StatelessWidget {
+class App extends ConsumerWidget {
   const App({super.key});
 
   @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+
+    return SensorGestureDetector(
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        theme: theme,
+        home: const SplashScreens(), // Use splash screen to check login status
+      ),
+    );
+  }
+}
+
+class SensorGestureDetector extends ConsumerStatefulWidget {
+  final Widget child;
+
+  const SensorGestureDetector({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  ConsumerState<SensorGestureDetector> createState() =>
+      _SensorGestureDetectorState();
+}
+
+class _SensorGestureDetectorState
+    extends ConsumerState<SensorGestureDetector> {
+  var _accelerometerSubscription;
+  bool _isShaking = false;
+  DateTime? _lastShakeTime;
+  DateTime? _lastTapTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _initShakeDetection();
+  }
+
+  @override
+  void dispose() {
+    _accelerometerSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _initShakeDetection() {
+    _accelerometerSubscription =
+        accelerometerEvents.listen((AccelerometerEvent event) {
+      final double acceleration =
+          (event.x.abs() + event.y.abs() + event.z.abs()) / 3;
+
+      final DateTime now = DateTime.now();
+
+      if (acceleration > 14) { 
+        if (_lastShakeTime == null ||
+            now.difference(_lastShakeTime!).inMilliseconds > 1000) {
+          _lastShakeTime = now;
+
+          if (!_isShaking) {
+            _isShaking = true;
+            _handleShake();
+
+            Future.delayed(const Duration(seconds: 2), () {
+              _isShaking = false;
+            });
+          }
+        }
+      }
+    });
+  }
+
+  void _handleShake() async {
+    print('Shake detected! Starting logout process...');
+    try {
+      final userSessionService =
+          ref.read(userSessionServiceProvider);
+
+      await userSessionService.logout();
+
+      print('Logout completed successfully');
+
+
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => LoginScreen(),
+        ),
+        (route) => false,
+      );
+
+      print('Navigation completed');
+    } catch (e) {
+      print('Error during logout: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: getApplicationTheme(),
-      home:SplashScreens(),
+    final themeNotifier = ref.read(themeProvider.notifier);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTapDown: (details) {
+        final now = DateTime.now();
+
+        if (_lastTapTime != null) {
+          final timeSinceLastTap =
+              now.difference(_lastTapTime!);
+
+          if (timeSinceLastTap.inMilliseconds < 300) {
+            if (kDebugMode) {
+              print('Double tap detected!');
+            }
+
+            themeNotifier.toggleTheme();
+            _lastTapTime = null;
+          } else {
+            _lastTapTime = now;
+          }
+        } else {
+          _lastTapTime = now;
+        }
+      },
+      child: widget.child,
     );
   }
 }

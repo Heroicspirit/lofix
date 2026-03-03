@@ -85,7 +85,7 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   @override
   Future<bool> logout() async {
     try {
-      await _userSessionService.clearUserSession();
+      await _userSessionService.logout(); // Use proper logout method that preserves onboarding
       await _tokenService.removeToken();
       return true;
     } catch (e) {

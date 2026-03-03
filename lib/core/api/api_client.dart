@@ -2,20 +2,22 @@ import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:musicapp/core/api/api_endpoints.dart';
+import 'package:musicapp/core/services/storage/user_session_service.dart';
 // import 'package:lost_n_found/core/api/api_endpoints.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 // Provider for ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient();
+  return ApiClient(sharedPreferences: ref.watch(sharedPreferencesProvider));
 });
 
 class ApiClient {
   late final Dio _dio;
+  final SharedPreferences _sharedPreferences;
 
-  ApiClient() {
+  ApiClient({required SharedPreferences sharedPreferences}) : _sharedPreferences = sharedPreferences {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiEndpoints.baseUrl,
@@ -29,7 +31,7 @@ class ApiClient {
     );
 
     // Add interceptors
-    _dio.interceptors.add(_AuthInterceptor());
+    _dio.interceptors.add(_AuthInterceptor(_sharedPreferences));
 
     // Auto retry on network failures
     _dio.interceptors.add(
@@ -140,8 +142,10 @@ class ApiClient {
 
 // Auth Interceptor to add JWT token to requests
 class _AuthInterceptor extends Interceptor {
-  final _storage = const FlutterSecureStorage();
+  final SharedPreferences _sharedPreferences;
   static const String _tokenKey = 'auth_token';
+
+  _AuthInterceptor(this._sharedPreferences);
 
   @override
   void onRequest(
@@ -164,7 +168,7 @@ class _AuthInterceptor extends Interceptor {
         options.path == ApiEndpoints.register;
 
     if (!isPublicGet && !isAuthEndpoint) {
-      final token = await _storage.read(key: _tokenKey);
+      final token = _sharedPreferences.getString(_tokenKey);
       if (token != null) {
         options.headers['Authorization'] = 'Bearer $token';
       }
@@ -174,11 +178,11 @@ class _AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     // Handle 401 Unauthorized - token expired
     if (err.response?.statusCode == 401) {
       // Clear token and redirect to login
-      _storage.delete(key: _tokenKey);
+      await _sharedPreferences.remove(_tokenKey);
       // You can add navigation logic here or use a callback
     }
     handler.next(err);

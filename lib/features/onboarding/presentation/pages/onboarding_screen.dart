@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/features/auth/presentation/pages/login_screen.dart';
+import 'package:musicapp/core/services/storage/user_session_service.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   final PageController swipeController  = PageController();
   int currentIndex =0;
@@ -25,6 +27,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Column(
         children: [
+          // Skip button at the top
+          Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 50, right: 20),
+              child: TextButton(
+                onPressed: () async {
+                  // Mark onboarding as completed even when skipping
+                  await ref.read(userSessionServiceProvider).completeOnboarding();
+                  
+                  if (!context.mounted) return;
+                  Navigator.pushReplacement(
+                    context, 
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+                child: const Text(
+                  "Skip",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: PageView.builder(
               controller: swipeController,
@@ -69,11 +98,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 20),
           currentIndex == pages.length-1
           ? ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              // Much cleaner!
+              await ref.read(userSessionServiceProvider).completeOnboarding();
+              
+              print('=== DEBUG: Onboarding Completion ===');
+              print('After completion: isOnboardingCompleted = ${ref.read(userSessionServiceProvider).isOnboardingCompleted()}');
+              
+              if (!context.mounted) return;
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
+              );
             }, 
             child: const Text("Get Started"),
             )
