@@ -16,25 +16,25 @@ class HomeScreen extends ConsumerWidget {
       id: '1',
       name: 'Jax Bloom',
       sub: 'Artist',
-      imageUrl: 'http://172.25.0.104:5000/upload/images/singer%201.webp',
+      imageUrl: 'http://192.168.1.67:5000/upload/images/singer%201.webp',
     ),
     Artist(
       id: '2',
       name: 'Sonu Nigam',
       sub: 'Artist',
-      imageUrl: 'http://172.25.0.104:5000/upload/images/singer2.webp',
+      imageUrl: 'http://192.168.1.67:5000/upload/images/singer2.webp',
     ),
     Artist(
       id: '3',
       name: 'The Weeknd',
       sub: 'Artist',
-      imageUrl: 'http://172.25.0.104:5000/upload/images/singer%201.webp',
+      imageUrl: 'http://192.168.1.67:5000/upload/images/singer%201.webp',
     ),
     Artist(
       id: '4',
       name: 'Lofi Girl',
       sub: 'Artist',
-      imageUrl: 'http://172.25.0.104:5000/upload/images/singer2.webp',
+      imageUrl: 'http://192.168.1.67:5000/upload/images/singer2.webp',
     ),
   ];
 

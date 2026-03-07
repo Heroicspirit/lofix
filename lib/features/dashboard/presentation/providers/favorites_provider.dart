@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:musicapp/core/error/failures.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 import 'package:musicapp/features/dashboard/domain/usecases/add_to_favorites_usecase.dart';
 import 'package:musicapp/features/dashboard/domain/usecases/get_favorites_usecase.dart';
 import 'package:musicapp/features/dashboard/domain/usecases/remove_from_favorites_usecase.dart';
+import 'package:musicapp/features/dashboard/presentation/providers/favorites_provider_dependencies.dart';
 
 class FavoritesNotifier extends StateNotifier<AsyncValue<List<MusicEntity>>> {
   final AddToFavoritesUseCase _addToFavoritesUseCase;
@@ -69,3 +69,12 @@ class FavoritesNotifier extends StateNotifier<AsyncValue<List<MusicEntity>>> {
     return favorites.any((song) => song.id == songId);
   }
 }
+
+// Favorites provider
+final favoritesProvider = StateNotifierProvider<FavoritesNotifier, AsyncValue<List<MusicEntity>>>((ref) {
+  return FavoritesNotifier(
+    ref.read(addToFavoritesUseCaseProvider),
+    ref.read(getFavoritesUseCaseProvider),
+    ref.read(removeFromFavoritesUseCaseProvider),
+  );
+});
