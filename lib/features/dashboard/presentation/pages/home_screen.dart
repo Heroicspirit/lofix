@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/features/dashboard/presentation/widgets/section_header.dart';
 import 'package:musicapp/features/dashboard/presentation/widgets/horizontal_music_list.dart';
 import 'package:musicapp/features/dashboard/presentation/widgets/top_artists_list.dart';
-import 'package:musicapp/features/dashboard/presentation/providers/music_provider.dart';
+import 'package:musicapp/features/dashboard/presentation/view_model/top_picks_viewmodel.dart';
+import 'package:musicapp/features/dashboard/presentation/view_model/new_releases_viewmodel.dart';
 import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 

@@ -26,10 +26,10 @@ final currentPlaylistProvider = StateProvider<PlaylistEntity?>((ref) => null);
 final playlistLoadingProvider = StateProvider<bool>((ref) => false);
 
 // Playlist actions provider
-class PlaylistNotifier extends StateNotifier<List<PlaylistEntity>> {
+class PlaylistViewModel extends StateNotifier<List<PlaylistEntity>> {
   final PlaylistRepository _repository;
 
-  PlaylistNotifier(this._repository) : super([]);
+  PlaylistViewModel(this._repository) : super([]);
 
   Future<void> loadPlaylists() async {
     state = [];
@@ -104,7 +104,7 @@ class PlaylistNotifier extends StateNotifier<List<PlaylistEntity>> {
   }
 }
 
-final playlistNotifierProvider = StateNotifierProvider<PlaylistNotifier, List<PlaylistEntity>>((ref) {
+final playlistViewModelProvider = StateNotifierProvider<PlaylistViewModel, List<PlaylistEntity>>((ref) {
   final repository = ref.read(playlistRepositoryProvider);
-  return PlaylistNotifier(repository);
+  return PlaylistViewModel(repository);
 });

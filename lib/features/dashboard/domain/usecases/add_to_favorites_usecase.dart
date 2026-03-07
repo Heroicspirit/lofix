@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import 'package:musicapp/core/error/failures.dart';
-import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 import 'package:musicapp/features/dashboard/domain/repositories/favorites_repository.dart';
 
 class AddToFavoritesUseCase {

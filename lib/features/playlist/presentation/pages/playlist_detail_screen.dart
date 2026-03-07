@@ -5,7 +5,7 @@ import 'package:musicapp/features/playlist/domain/entities/playlist_entity.dart'
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 import 'package:musicapp/features/dashboard/presentation/pages/now_playing_screen.dart';
 import 'package:musicapp/core/services/audio/music_player_provider.dart';
-import 'package:musicapp/features/playlist/presentation/providers/playlist_provider.dart';
+import 'package:musicapp/features/playlist/presentation/view_model/playlist_viewmodel.dart';
 
 class PlaylistDetailScreen extends ConsumerStatefulWidget {
   final PlaylistEntity playlist;
@@ -34,10 +34,10 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
       print('DEBUG: Refreshing playlist...');
       
       // Force refresh the playlists
-      await ref.read(playlistNotifierProvider.notifier).loadPlaylists();
+      await ref.read(playlistViewModelProvider.notifier).loadPlaylists();
       
       // Get the updated playlists from the notifier state
-      final playlists = ref.read(playlistNotifierProvider);
+      final playlists = ref.read(playlistViewModelProvider);
       print('DEBUG: Found ${playlists.length} playlists');
       
       final updatedPlaylist = playlists.firstWhere(
@@ -364,7 +364,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await ref.read(playlistNotifierProvider.notifier)
+                await ref.read(playlistViewModelProvider.notifier)
                     .removeSongFromPlaylist(_currentPlaylist.id, song.id);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -452,7 +452,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await ref.read(playlistNotifierProvider.notifier).deletePlaylist(_currentPlaylist.id);
+                await ref.read(playlistViewModelProvider.notifier).deletePlaylist(_currentPlaylist.id);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

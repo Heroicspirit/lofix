@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/app/theme/theme_provider.dart';
-import 'package:musicapp/core/services/audio/music_player_provider.dart';
-import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 import 'package:musicapp/features/dashboard/presentation/pages/now_playing_screen.dart';
-import 'package:musicapp/features/dashboard/presentation/providers/favorites_provider_dependencies.dart';
+import 'package:musicapp/features/dashboard/presentation/view_model/favorites_viewmodel.dart';
 
 class FavoriteSongsScreen extends ConsumerStatefulWidget {
   const FavoriteSongsScreen({super.key});
@@ -19,7 +17,8 @@ class _FavoriteSongsScreenState extends ConsumerState<FavoriteSongsScreen> {
     super.initState();
     // Load favorites when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(favoritesProvider.notifier).loadFavorites();
+      final favoritesViewModel = ref.read(favoritesProvider.notifier);
+      favoritesViewModel.loadFavorites();
     });
   }
 
@@ -28,6 +27,7 @@ class _FavoriteSongsScreenState extends ConsumerState<FavoriteSongsScreen> {
     final themeData = ref.watch(themeProvider);
     final isDarkMode = themeData.brightness == Brightness.dark;
     final favoritesAsync = ref.watch(favoritesProvider);
+    final favoritesViewModel = ref.read(favoritesProvider.notifier);
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : Colors.white,
@@ -146,7 +146,7 @@ class _FavoriteSongsScreenState extends ConsumerState<FavoriteSongsScreen> {
                   ),
                 ),
                 subtitle: Text(
-                  song.artist ?? 'Unknown Artist',
+                  song.artist,
                   style: TextStyle(
                     color: isDarkMode ? Colors.white70 : Colors.black54,
                   ),
@@ -154,7 +154,7 @@ class _FavoriteSongsScreenState extends ConsumerState<FavoriteSongsScreen> {
                 trailing: IconButton(
                   icon: const Icon(Icons.favorite, color: Colors.red),
                   onPressed: () {
-                    ref.read(favoritesProvider.notifier).removeFromFavorites(song.id);
+                    favoritesViewModel.removeFromFavorites(song.id);
                   },
                 ),
                 onTap: () {

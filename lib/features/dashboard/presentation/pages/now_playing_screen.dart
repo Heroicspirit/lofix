@@ -6,7 +6,7 @@ import 'package:musicapp/core/services/audio/music_player_provider.dart';
 import 'package:musicapp/core/services/audio/music_player_service.dart';
 import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
-import 'package:musicapp/features/dashboard/presentation/providers/favorites_provider_dependencies.dart';
+import 'package:musicapp/features/dashboard/presentation/view_model/favorites_viewmodel.dart';
 
 class NowPlayingScreen extends ConsumerWidget {
   final MusicEntity song;
