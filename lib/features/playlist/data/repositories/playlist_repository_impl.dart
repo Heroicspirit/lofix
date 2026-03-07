@@ -1,7 +1,6 @@
 import 'package:musicapp/features/playlist/domain/entities/playlist_entity.dart';
 import 'package:musicapp/features/playlist/domain/repositories/playlist_repository.dart';
 import 'package:musicapp/features/playlist/data/datasources/remote/playlist_remote_datasource.dart';
-import 'package:musicapp/features/playlist/data/models/playlist_model.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 
 class PlaylistRepositoryImpl implements PlaylistRepository {

@@ -7,6 +7,7 @@ import 'package:musicapp/features/auth/domain/usecases/register_usecase.dart';
 import 'package:musicapp/features/auth/domain/usecases/upload_photo_usecase.dart';
 import 'package:musicapp/features/auth/presentation/state/auth_state.dart';
 import 'package:musicapp/core/services/storage/user_session_service.dart';
+import 'package:musicapp/features/dashboard/presentation/view_model/favorites_viewmodel.dart';
 
 final authViewModelProvider =
     NotifierProvider<AuthViewModel, AuthState>(
@@ -213,6 +214,10 @@ class AuthViewModel extends Notifier<AuthState> {
             ref.read(userSessionServiceProvider);
 
         await userSessionService.clearSession();
+
+        // Clear favorites when logging out
+        final favoritesViewModel = ref.read(favoritesProvider.notifier);
+        await favoritesViewModel.clearFavorites();
 
         state = AuthState.initial();
       },

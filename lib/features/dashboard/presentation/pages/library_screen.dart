@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/app/theme/theme_provider.dart';
 import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/playlist/domain/entities/playlist_entity.dart';
-import 'package:musicapp/features/playlist/presentation/providers/playlist_provider.dart';
+import 'package:musicapp/features/playlist/presentation/view_model/playlist_viewmodel.dart';
 import 'package:musicapp/features/playlist/presentation/pages/playlist_detail_screen.dart';
 import 'package:musicapp/features/playlist/presentation/pages/create_playlist_screen.dart';
 
@@ -20,7 +20,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     super.initState();
     // Load playlists when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(playlistNotifierProvider.notifier).loadPlaylists();
+      ref.read(playlistViewModelProvider.notifier).loadPlaylists();
     });
   }
 
@@ -28,8 +28,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Widget build(BuildContext context) {
     final themeData = ref.watch(themeProvider);
     final isDarkMode = themeData.brightness == Brightness.dark;
-    final playlists = ref.watch(playlistNotifierProvider);
-    final playlistNotifier = ref.watch(playlistNotifierProvider.notifier);
+    final playlists = ref.watch(playlistViewModelProvider);
+    final playlistNotifier = ref.watch(playlistViewModelProvider.notifier);
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : Colors.white,
@@ -151,7 +151,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               );
               
               if (result == true) {
-                ref.read(playlistNotifierProvider.notifier).loadPlaylists();
+                ref.read(playlistViewModelProvider.notifier).loadPlaylists();
               }
             },
             icon: const Icon(Icons.add),
@@ -419,7 +419,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             onPressed: () async {
               Navigator.pop(dialogContext);
               try {
-                await ref.read(playlistNotifierProvider.notifier).deletePlaylist(playlist.id);
+                await ref.read(playlistViewModelProvider.notifier).deletePlaylist(playlist.id);
                 if (mounted) {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     SnackBar(
@@ -428,7 +428,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     ),
                   );
                   // Refresh the playlist data to show updated list
-                  ref.read(playlistNotifierProvider.notifier).loadPlaylists();
+                  ref.read(playlistViewModelProvider.notifier).loadPlaylists();
                 }
               } catch (e) {
                 if (mounted) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musicapp/app/theme/theme_provider.dart';
-import 'package:musicapp/features/playlist/presentation/providers/playlist_provider.dart';
+import 'package:musicapp/features/playlist/presentation/view_model/playlist_viewmodel.dart';
 
 class CreatePlaylistScreen extends ConsumerStatefulWidget {
   const CreatePlaylistScreen({super.key});
@@ -229,7 +229,7 @@ class _CreatePlaylistScreenState extends ConsumerState<CreatePlaylistScreen> {
     });
 
     try {
-      await ref.read(playlistNotifierProvider.notifier).createPlaylist(
+      await ref.read(playlistViewModelProvider.notifier).createPlaylist(
         _nameController.text.trim(),
         description: _descriptionController.text.trim().isEmpty 
             ? null 

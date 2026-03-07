@@ -6,7 +6,7 @@ import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
 import 'package:musicapp/features/dashboard/presentation/pages/now_playing_screen.dart';
 import 'package:musicapp/features/playlist/domain/entities/playlist_entity.dart';
-import 'package:musicapp/features/playlist/presentation/providers/playlist_provider.dart';
+import 'package:musicapp/features/playlist/presentation/view_model/playlist_viewmodel.dart';
 import 'package:musicapp/features/dashboard/data/repositories/music_repository_impl.dart';
 import 'package:musicapp/features/dashboard/data/datasources/remote/music_remote_datasource.dart';
 import 'package:musicapp/core/api/api_client.dart';
@@ -499,7 +499,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     onTap: () async {
                       Navigator.pop(dialogContext);
                       try {
-                        await ref.read(playlistNotifierProvider.notifier)
+                        await ref.read(playlistViewModelProvider.notifier)
                             .addSongToPlaylist(playlist.id, song.id);
                         if (mounted) {
                           ScaffoldMessenger.of(dialogContext).showSnackBar(
@@ -509,7 +509,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             ),
                           );
                           // Refresh the playlist data to show updated songs list
-                          ref.read(playlistNotifierProvider.notifier).loadPlaylists();
+                          ref.read(playlistViewModelProvider.notifier).loadPlaylists();
                         }
                       } catch (e) {
                         if (mounted) {

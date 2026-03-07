@@ -6,6 +6,7 @@ import 'package:musicapp/core/services/audio/music_player_provider.dart';
 import 'package:musicapp/core/services/audio/music_player_service.dart';
 import 'package:musicapp/core/providers/offline_mode_provider.dart';
 import 'package:musicapp/features/dashboard/domain/entities/music_entity.dart';
+import 'package:musicapp/features/dashboard/presentation/view_model/favorites_viewmodel.dart';
 
 class NowPlayingScreen extends ConsumerWidget {
   final MusicEntity song;
@@ -64,7 +65,7 @@ class NowPlayingScreen extends ConsumerWidget {
                   const Spacer(),
 
                   // 4. Song Info
-                  _buildSongInfo(currentSong ?? song, isDarkMode),
+                  _buildSongInfo(currentSong ?? song, isDarkMode, ref),
 
                   const SizedBox(height: 30),
 
@@ -141,7 +142,7 @@ class NowPlayingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSongInfo(MusicEntity song, bool isDarkMode) {
+  Widget _buildSongInfo(MusicEntity song, bool isDarkMode, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
@@ -161,7 +162,7 @@ class NowPlayingScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                song.artist ?? 'Unknown Artist',
+                song.artist  ,
                 style: TextStyle(
                   fontSize: 18,
                   color: isDarkMode ? Colors.white70 : Colors.black54,
@@ -171,9 +172,26 @@ class NowPlayingScreen extends ConsumerWidget {
           ),
         ),
         IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.favorite_border),
-          color: isDarkMode ? Colors.white70 : Colors.black54,
+          onPressed: () {
+            final isFavorite = ref.read(favoritesProvider.notifier).isFavorite(song.id);
+            if (isFavorite) {
+              ref.read(favoritesProvider.notifier).removeFromFavorites(song.id);
+            } else {
+              ref.read(favoritesProvider.notifier).addToFavorites(song.id!);
+            }
+          },
+          icon: Consumer(
+            builder: (context, ref, child) {
+              final isFavorite = ref.watch(favoritesProvider).maybeWhen(
+                data: (favorites) => favorites.any((s) => s.id == song.id!),
+                orElse: () => false,
+              );
+              return Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : (isDarkMode ? Colors.white70 : Colors.black54),
+              );
+            },
+          ),
         )
       ],
     );
