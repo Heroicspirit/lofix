@@ -85,7 +85,8 @@ class TopArtistsList extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Flexible( // Use Flexible to prevent overflow
+                SizedBox(
+                  height: 44, // Fixed height to prevent overflow
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -96,7 +97,7 @@ class TopArtistsList extends StatelessWidget {
                           fontSize: 16,
                         ),
                         textAlign: TextAlign.center,
-                        maxLines: 2, // Prevent text overflow
+                        maxLines: 1, // Use 1 line to prevent overflow
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(

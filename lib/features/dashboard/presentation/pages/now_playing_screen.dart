@@ -162,7 +162,7 @@ class NowPlayingScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                song.artist ?? 'Unknown Artist',
+                song.artist  ,
                 style: TextStyle(
                   fontSize: 18,
                   color: isDarkMode ? Colors.white70 : Colors.black54,
